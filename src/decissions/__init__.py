@@ -1,4 +1,4 @@
-"""chat-safety: provider-neutral conversation safety decisions."""
+"""Reusable decision platform. Existing safety APIs remain available; optional decision and presentation modules are imported explicitly."""
 
 from .context import ContextLimits, ContextTooLarge
 from .assessment import (

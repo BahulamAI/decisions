@@ -3,9 +3,9 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "chat-safety"
-version = "0.1.0a0"
-description = "Typed, provider-neutral risk assessments for conversational applications"
+name = "decissions"
+version = "0.2.0a0"
+description = "Modular safety assessments and typed presentation decisions with interchangeable providers and renderers"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
@@ -20,18 +20,20 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+decisions = ["pydantic>=2.7,<3"]
+presentations = ["pydantic>=2.7,<3", "jsonschema>=4.23,<5"]
 jev = ["httpx>=0.27,<1"]
-dev = ["pytest>=8,<10", "httpx>=0.27,<1"]
+dev = ["pytest>=8,<10", "httpx>=0.27,<1", "pydantic>=2.7,<3", "jsonschema>=4.23,<5"]
 
 [project.urls]
-Repository = "https://github.com/BahulamAI/chat-safety"
-Issues = "https://github.com/BahulamAI/chat-safety/issues"
+Repository = "https://github.com/BahulamAI/decissions"
+Issues = "https://github.com/BahulamAI/decissions/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-chat_safety = ["py.typed"]
+decissions = ["py.typed", "presentations/catalog/*.json", "renderers/workplane/contracts/*.json", "renderers/workplane/contracts/LICENSE.workplane"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

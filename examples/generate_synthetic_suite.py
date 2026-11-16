@@ -6,7 +6,7 @@ Recorded scores here are invented to exercise routing. They do not measure Jev.
 import json
 from pathlib import Path
 
-from chat_safety import Category, Stage
+from decissions import Category, Stage
 
 
 ROOT = Path(__file__).resolve().parent

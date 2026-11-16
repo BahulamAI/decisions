@@ -1,7 +1,7 @@
 import unittest
 
-from chat_safety import Action, Mode, SafetyDecision, Stage
-from chat_safety.evaluation import LabeledCase, evaluate_decisions
+from decissions import Action, Mode, SafetyDecision, Stage
+from decissions.evaluation import LabeledCase, evaluate_decisions
 
 
 def decision(request_id, action):

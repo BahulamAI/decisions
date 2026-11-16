@@ -1,10 +1,10 @@
 import unittest
 
-from chat_safety import (
+from decissions import (
     Action, AssessmentScope, Category, ContextLimits, Evaluation, Mode, PolicyBundle, RecentTurn,
     RiskTier, SafetyGate, SafetyInput, ScannerStatus, Signal, Stage, ThresholdBand,
 )
-from chat_safety.engine import RuleResult
+from decissions.engine import RuleResult
 
 
 CATEGORY = Category.FRAUD_THEFT

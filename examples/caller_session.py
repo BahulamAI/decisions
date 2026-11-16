@@ -3,7 +3,7 @@
 import asyncio
 from pathlib import Path
 
-from chat_safety import (
+from decissions import (
     Action, AssessmentScope, Category, Evaluation, EventOutcome,
     SafetyGate, SessionEvent, SessionSafetyState, SessionTracker,
     Signal, Stage, content_digest, load_policy_json,

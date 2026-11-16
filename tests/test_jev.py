@@ -3,8 +3,8 @@ import json
 
 import httpx
 
-from chat_safety import AssessmentScope, Category, RecentTurn, SafetyInput, Stage
-from chat_safety.adapters.jev import JevEvaluator, JevResponseError, NoulQuestion
+from decissions import AssessmentScope, Category, RecentTurn, SafetyInput, Stage
+from decissions.adapters.jev import JevEvaluator, JevResponseError, NoulQuestion
 
 
 class JevResponseTests(unittest.TestCase):
@@ -43,8 +43,8 @@ class JevResponseTests(unittest.TestCase):
 
 class JevRequestTests(unittest.IsolatedAsyncioTestCase):
     async def test_caller_gateway_and_model_are_used_without_direct_provider_fallback(self):
-        from chat_safety import AssessmentInput, RiskAssessor, load_risk_registry
-        from chat_safety.adapters.jev_risk import JevRiskEvaluator
+        from decissions import AssessmentInput, RiskAssessor, load_risk_registry
+        from decissions.adapters.jev_risk import JevRiskEvaluator
         from pathlib import Path
 
         endpoint = "http://gateway.internal/v1/decisions"
@@ -71,7 +71,7 @@ class JevRequestTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(seen, [(endpoint, "Bearer svc_test", model)] * 2)
 
     def test_invalid_gateway_endpoints_are_rejected(self):
-        from chat_safety.adapters.jev_risk import JevRiskEvaluator
+        from decissions.adapters.jev_risk import JevRiskEvaluator
 
         for endpoint in ("", "file:///tmp/decisions", "https://user:password@gateway/decisions",
                          "https://gateway/decisions?token=secret", "https://gateway/decisions#part"):

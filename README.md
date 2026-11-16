@@ -1,20 +1,38 @@
-# chat-safety
+# Decissions
+
+Reusable, isolated modules for safety assessment and chart decisions. The local repository directory is
+`decissions`; the installable distribution is `decissions` and imports use
+`decissions`. There is no legacy import facade. Backend adoption is a separate change.
+
+| Use case | Module | Status |
+|---|---|---|
+| Safety assessment and application policy | `decissions.assessment`, `engine`, `session` | Existing functionality preserved |
+| Generic decision contracts and selection | `decissions.decisions` | Extracted domain interfaces and bounded in-process engine |
+| Chart profiling and eligibility | `decissions.presentations` | Implemented; rules or optional Jev selection |
+| Workplane rendering contract | `decissions.renderers.workplane` | First isolated compiler adapter |
+| Model/tool selection and PII detection | Future domain integrations | Not implemented by this change |
+
+See [module architecture and chart quick start](docs/decision-platform.md).
+Install chart support with `pip install '.[presentations]'`, hosted selection with
+`pip install '.[presentations,jev]'`, or test dependencies with `pip install '.[dev]'`.
+
+## Safety assessment API
 
 Typed, provider-neutral risk assessments for conversational applications.
 
-Give `chat-safety` your content, conversation context, and risk definitions. It returns structured scores for risk families and subfamilies, assessed at message or session scope. Your application decides how to use that evidence: guide an agent, request more detail, review a tool action, or assess a draft before releasing it.
+Give the safety assessment module your content, conversation context, and risk definitions. It returns structured scores for risk families and subfamilies, assessed at message or session scope. Your application decides how to use that evidence: guide an agent, request more detail, review a tool action, or assess a draft before releasing it.
 
 **The primary API returns evidence, not permission to act.** It does not run tools, modify prompts, rewrite responses, block messages, or store conversations. Those controls belong to the application.
 
-The package is alpha (`0.1.0a0`) and requires Python 3.10 or later. Its example criteria and thresholds are synthetic; they are not a calibrated production policy.
+The package is alpha (`0.2.0a0`) and requires Python 3.10 or later. Its example criteria and thresholds are synthetic; they are not a calibrated production policy.
 
 ## Install
 
 Install from a source checkout:
 
 ```bash
-git clone https://github.com/BahulamAI/chat-safety.git
-cd chat-safety
+git clone https://github.com/BahulamAI/decissions.git decissions
+cd decissions
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[jev]'
@@ -58,7 +76,7 @@ import asyncio
 import json
 import os
 
-from chat_safety import (
+from decissions import (
     AssessmentInput,
     AssessmentScope,
     AssessmentStatus,
@@ -67,7 +85,7 @@ from chat_safety import (
     Stage,
     load_risk_registry,
 )
-from chat_safety.adapters.jev_risk import JevRiskEvaluator
+from decissions.adapters.jev_risk import JevRiskEvaluator
 
 
 async def main():
@@ -116,7 +134,7 @@ The registry uses schema `chat-safety.risks/1` and contains:
 - `version`: the caller's version identifier for the definition set.
 - `reporting.top_k_families`: a positive integer, defaulting to `3`.
 - `families`: a map of family IDs to descriptions, questions, and optional subfamilies.
-- `limits`: optional context bounds; see [ContextLimits](src/chat_safety/context.py).
+- `limits`: optional context bounds; see [ContextLimits](src/decissions/context.py).
 
 Every family and subfamily requires both `message` and `session` questions. Each question has `instructions`, `true_criteria`, and `false_criteria`. For example, a question can distinguish unapproved disclosure from authorized handling or redaction. Family and subfamily IDs must match `[a-z][a-z0-9_]{0,63}`. New IDs do not require a package release.
 
@@ -237,7 +255,7 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 PYTHONPATH=src python examples/family_nudge.py
 PYTHONPATH=src python examples/minimal.py
 PYTHONPATH=src python examples/caller_session.py
-PYTHONPATH=src python -m chat_safety.eval_cli \
+PYTHONPATH=src python -m decissions.eval_cli \
   --policy examples/synthetic-policy.json \
   --cases examples/synthetic-cases.jsonl \
   --list-decisions --fail-on-mismatch
@@ -260,15 +278,15 @@ For application evaluation, keep a labeled corpus covering benign research, ambi
 
 | Module | Responsibility |
 | --- | --- |
-| [assessment.py](src/chat_safety/assessment.py) | Evidence contracts, validation, family and subfamily assessment |
-| [registry.py](src/chat_safety/registry.py) | Strict JSON registry loader |
-| [adapters/jev_risk.py](src/chat_safety/adapters/jev_risk.py) | Jev adapter for the family API |
-| [context.py](src/chat_safety/context.py) | Context bounds |
-| [questions.py](src/chat_safety/questions.py) | Provider-neutral binary criteria |
-| [models.py](src/chat_safety/models.py) | Stages, scopes, and legacy action contracts |
-| [config.py](src/chat_safety/config.py), [policy.py](src/chat_safety/policy.py), [engine.py](src/chat_safety/engine.py) | Legacy policy loading and action composition |
-| [session.py](src/chat_safety/session.py) | Legacy session state and storage interface |
-| [evaluation.py](src/chat_safety/evaluation.py) | Legacy offline evaluation metrics |
+| [assessment.py](src/decissions/assessment.py) | Evidence contracts, validation, family and subfamily assessment |
+| [registry.py](src/decissions/registry.py) | Strict JSON registry loader |
+| [adapters/jev_risk.py](src/decissions/adapters/jev_risk.py) | Jev adapter for the family API |
+| [context.py](src/decissions/context.py) | Context bounds |
+| [questions.py](src/decissions/questions.py) | Provider-neutral binary criteria |
+| [models.py](src/decissions/models.py) | Stages, scopes, and legacy action contracts |
+| [config.py](src/decissions/config.py), [policy.py](src/decissions/policy.py), [engine.py](src/decissions/engine.py) | Legacy policy loading and action composition |
+| [session.py](src/decissions/session.py) | Legacy session state and storage interface |
+| [evaluation.py](src/decissions/evaluation.py) | Legacy offline evaluation metrics |
 
 ## Contributing
 
