@@ -117,3 +117,19 @@ Workplane JavaScript validator. Browser visual/interaction acceptance and live-p
 consumer-integration work.
 
 The package rename retains existing wire schema identifiers (`chat-safety.*`, `decision-platform.*` and `workplane.chat-chart/1`). These identify contracts, not Python import paths. No legacy import package is shipped.
+
+
+## Preserved operational capabilities (0.2.0a1)
+
+`decissions.runtime` preserves the source engine's versioned policies, model routing,
+provider budgets, circuit breakers, shared Redis rate limits and metrics. Its Store
+protocol is supplied by the host; the package owns no EntityBI database or credentials.
+`decissions.presentations.saved` validates revision/data identity and recompiles eligible
+saved options. `decissions.decisions.feedback` supplies the pending-review and review
+state transitions; hosts must authorize actors and persist atomically.
+`decissions.testing.presentations` is the reusable synthetic evaluation harness.
+BI result adapters, BI fixtures and ranker artifacts remain in EntityBI.
+
+The extraction manifest records the other developer's current source hashes. No
+hosted inference or shadow rollout is enabled implicitly. Install operational modules
+with the `runtime` extra; the original lightweight API remains available.
