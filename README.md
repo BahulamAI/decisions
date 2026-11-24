@@ -1,7 +1,7 @@
 # Decissions
 
 One Python package runtime for chat safety, chart rendering, text classification, and additional
-policy-selected decision handlers. Install with `pip install '.[api,presentations]'`.
+policy-selected decision handlers. From a source checkout, install with `pip install '.[api,presentations]'`.
 The current alpha version is `0.3.0a1` (Python 3.10+).
 
 ```python
@@ -23,7 +23,7 @@ response = await runtime.decide(
 )
 ```
 
-The variables above are application-supplied, authorized data. Runnable offline examples:
+Place the call above in an async function. The variables are application-supplied, authorized data. Runnable offline examples:
 
 ```bash
 PYTHONPATH=src python examples/unified.py
@@ -36,6 +36,11 @@ PYTHONPATH=src python examples/sql_classification.py
 | Risk evidence | `RiskAssessmentHandler(existing_assessor)` | Content and optional family/session selection | Family/subfamily probabilities and provenance |
 | Chart rendering | `PresentationHandler()` | Result reference, fields/rows, intent | Decision receipt, rendering and rendering status |
 | Text classification | `ClassificationHandler(...)` | Text, including a column fetched with SQL | Label or abstention, probabilities and receipt |
+
+Charts return a renderer-ready JSON payload for the host UI to display; the package does not
+produce a screenshot or run a browser. SQL classification fetches rows in the host and calls
+`decide_many`; there is no native MotherDuck/DuckDB SQL function in this package. Classification
+needs an explicitly configured selector to produce labels; the default rules selector abstains.
 
 A versioned `DecisionPolicy` selects the handler, tenant admission, deadline and selection overrides.
 The application registers implementations and credentials at startup; requests only name a policy and
@@ -55,7 +60,7 @@ Typed, provider-neutral risk assessments for conversational applications.
 
 Give the safety assessment module your content, conversation context, and risk definitions. It returns structured scores for risk families and subfamilies, assessed at message or session scope. Your application decides how to use that evidence: guide an agent, request more detail, review a tool action, or assess a draft before releasing it.
 
-**The primary API returns evidence, not permission to act.** It does not run tools, modify prompts, rewrite responses, block messages, or store conversations. Those controls belong to the application.
+**Risk assessment returns evidence, not permission to act.** It does not run tools, modify prompts, rewrite responses, block messages, or store conversations. Those controls belong to the application.
 
 The package is alpha (`0.3.0a1`) and requires Python 3.10 or later. Its example criteria and thresholds are synthetic; they are not a calibrated production policy.
 
@@ -68,20 +73,25 @@ git clone https://github.com/BahulamAI/decisions.git decissions
 cd decissions
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e '.[jev]'
+python -m pip install -e '.[api,jev,presentations]'
 ```
 
-Use `pip install -e .` for the provider-neutral core without the optional HTTP dependency, or `pip install -e '.[dev]'` for development and tests. Pin a reviewed commit when integrating a source checkout into a deployed application.
+For common-runtime safety and classification without charts, install `.[api,jev]`.
+Use `pip install -e .` only for the dependency-free safety contracts and lower-level safety APIs;
+it does not install the common runtime dependencies. Install `.[dev]` for the full offline test suite. Pin a reviewed commit when integrating a source checkout into a deployed application.
 
 ## Quick start without credentials
 
 From the repository root:
 
 ```bash
+PYTHONPATH=src python examples/unified.py
+PYTHONPATH=src python examples/sql_classification.py
 PYTHONPATH=src python examples/family_nudge.py
 ```
 
-This offline example uses invented scores to demonstrate message and session assessment, configurable top-N reporting, an explicit subfamily follow-up, and application-owned guidance. It makes no network requests.
+The first two examples exercise the common runtime with synthetic evaluators.
+`family_nudge.py` demonstrates the retained lower-level safety API. This offline example uses invented scores to demonstrate message and session assessment, configurable top-N reporting, an explicit subfamily follow-up, and application-owned guidance. It makes no network requests.
 
 The [example source](examples/family_nudge.py) also shows how to implement a custom evaluator. An evaluator implements `async evaluate(request, questions)` and returns a `RiskEvaluation` containing a `RiskScore` for every requested question, an evaluator name, and a model version.
 
@@ -110,13 +120,7 @@ import json
 import os
 
 from decissions import (
-    AssessmentInput,
-    AssessmentScope,
-    AssessmentStatus,
-    RecentTurn,
-    RiskAssessor,
-    Stage,
-    load_risk_registry,
+    DecisionPolicy, RiskAssessmentHandler, RiskAssessor, Runtime, load_risk_registry,
 )
 from decissions.adapters.jev_risk import JevRiskEvaluator
 
@@ -129,34 +133,38 @@ async def main():
         api_key=os.environ["SAFETY_API_KEY"],
         timeout_seconds=8.0,
     )
-    assessor = RiskAssessor(registry, evaluator)
-    request = AssessmentInput(
-        request_id="event-2",
-        registry_version=registry.version,
-        stage=Stage.INPUT,
-        content="How should I compare the evidence?",
-        assessment_scopes=(AssessmentScope.MESSAGE, AssessmentScope.SESSION),
-        session_ref="conversation-1",
-        session_revision=1,
-        recent_turns=(
-            RecentTurn("user", "Explain how clinical studies compare treatments."),
-            RecentTurn("assistant", "We can compare study design and limitations."),
-        ),
+    runtime = Runtime(
+        policies=[DecisionPolicy(id="chat.risks", version=registry.version,
+                                 handler="risks", timeout_seconds=8.0)],
+        handlers={"risks": RiskAssessmentHandler(RiskAssessor(registry, evaluator))},
     )
-    result = await assessor.assess_families(request, top_k_families=3)
-    if result.status is not AssessmentStatus.COMPLETE:
-        # An unavailable assessment is not evidence of low risk.
-        # Your application chooses its retry, review, or fallback behavior.
-        print(result.error_code)
+    request_fields = dict(policy="chat.risks", policy_version=registry.version,
+                          request_id="event-2", tenant_id="tenant-1")
+    snapshot = {
+        "stage": "input", "content": "How should I compare the evidence?",
+        "assessment_scopes": ["message", "session"],
+        "session_ref": "conversation-1", "session_revision": 1,
+        "recent_turns": [
+            {"role": "user", "text": "Explain how clinical studies compare treatments."},
+            {"role": "assistant", "text": "We can compare study design and limitations."},
+        ],
+    }
+    response = await runtime.decide(
+        **request_fields, input={**snapshot, "top_k_families": 3},
+    )
+    if response.status != "complete":
+        # Unavailable evidence is not low risk; result may be empty.
+        print(response.error_code)
         return
-    print(json.dumps(result.to_dict(), indent=2))
+    result = response.result
+    print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-For direct provider access, the adapter defaults to endpoint `https://openrouter.ai/api/alpha/decisions` and model `typesafe/jev-1.14`. You may override both as above. Calls send the supplied text and context to the configured endpoint. The library does not read deployment variables, discover credentials, or fall back from a gateway to a direct provider.
+For direct provider access, the adapter defaults to endpoint `https://openrouter.ai/api/alpha/decisions` and model `typesafe/jev-1.14`. You may override both as above. Calls send the supplied text and context to the configured endpoint. This adapter does not read deployment variables, discover credentials, or fall back from a gateway to a direct provider.
 
 ## Define your risk registry
 
@@ -177,7 +185,7 @@ The loader rejects malformed definitions and duplicate JSON keys. Version and ev
 
 ## Scores, top-N reporting, and subfamily expansion
 
-`assess_families` evaluates **all configured families** for every requested scope. `top_k_families` controls reporting, not which families are evaluated:
+A risk-handler request without `family_ids` evaluates **all configured families** for every requested scope. `top_k_families` controls reporting, not which families are evaluated:
 
 - `scores` contains every assessed family/scope score.
 - `top_families` contains up to N ranked families **per scope**.
@@ -194,17 +202,20 @@ Subfamilies require an explicit second call. The caller chooses parents using it
 # These thresholds are illustrative, not calibrated recommendations.
 expand_at = {"health": 0.60, "privacy": 0.60}
 selected = tuple(sorted({
-    score.family_id
-    for score in result.scores
-    if score.family_id in expand_at
-    and score.probability >= expand_at[score.family_id]
+    score["family_id"]
+    for score in result["scores"]
+    if score["family_id"] in expand_at
+    and score["probability"] >= expand_at[score["family_id"]]
 }))
 if selected:
-    detail = await assessor.assess_subfamilies(request, family_ids=selected)
-    if detail.status is AssessmentStatus.COMPLETE:
-        assert detail.input_digest == result.input_digest
-        assert detail.registry_digest == result.registry_digest
-        # Apply trusted application policy to detail.scores.
+    detail_response = await runtime.decide(
+        **request_fields, input={**snapshot, "family_ids": list(selected)},
+    )
+    if detail_response.status == "complete":
+        detail = detail_response.result
+        assert detail["input_digest"] == result["input_digest"]
+        assert detail["registry_digest"] == result["registry_digest"]
+        # Apply trusted application policy to detail["scores"].
 ```
 
 Inspect all scores when checking thresholds, not only `top_families`. Selected parents must exist and have children. The follow-up evaluates their children across the requested scopes; it does not replace the broad family scores. There are no automatic follow-up calls, nudges, or rewrites.
@@ -223,7 +234,7 @@ For session assessments:
 
 The library does not fetch history, build summaries, maintain a global user risk score, or calculate longitudinal trends. A session score describes the supplied snapshot; it is not an average of earlier message scores. Applications can compare compatible assessments over time, but must account for changes in questions, models, scopes, and context coverage.
 
-Default bounds include 12,000 characters of latest content, eight recent turns, 3,000 characters per recent turn, and a 2,000-character summary. Oversize input raises `ContextTooLarge` before evaluation; the library never silently truncates it. Configure bounds for your use case and retain coverage metadata when selecting or summarizing history. Missing history cannot be assessed.
+Default bounds include 12,000 characters of latest content, eight recent turns, 3,000 characters per recent turn, and a 2,000-character summary. Oversize input is rejected during admission before evaluation; the library never silently truncates it. Configure bounds for your use case and retain coverage metadata when selecting or summarizing history. Missing history cannot be assessed.
 
 The optional legacy `SessionTracker` described below is separate from `RiskAssessor`; it is not an automatic persistence layer for family assessments.
 
@@ -251,7 +262,11 @@ With the Jev adapter, family questions for all requested scopes are bundled into
 
 ## Result contract and failures
 
-`RiskAssessment.to_dict()` returns a JSON-compatible record with schema `chat-safety.assessment/1`:
+`Runtime.decide` returns the common `decissions.response/1` envelope. A risk handler's
+`result` contains the `chat-safety.assessment/1` record described below. An outer runtime
+timeout or execution failure can instead return an unavailable envelope with an empty
+`result`; check the envelope status first. The lower-level `RiskAssessment.to_dict()`
+returns the assessment record directly.
 
 | Fields | Purpose |
 | --- | --- |
@@ -284,7 +299,10 @@ Use `load_policy_json` with [runtime-policy.json](examples/runtime-policy.json) 
 Run the offline suite and examples from the repository root:
 
 ```bash
-PYTHONPATH=src python -m unittest discover -s tests -v
+python -m pip install -e '.[dev]'
+PYTHONPATH=src python -m pytest -q
+PYTHONPATH=src python examples/unified.py
+PYTHONPATH=src python examples/sql_classification.py
 PYTHONPATH=src python examples/family_nudge.py
 PYTHONPATH=src python examples/minimal.py
 PYTHONPATH=src python examples/caller_session.py
@@ -294,7 +312,7 @@ PYTHONPATH=src python -m decissions.eval_cli \
   --list-decisions --fail-on-mismatch
 ```
 
-Install the `dev` extra to include HTTP adapter tests. The replay CLI evaluates the **legacy action policy** against recorded synthetic probabilities. It reports aggregate metrics and case IDs without printing case text. Passing replay proves fixture routing and fallback behavior, not model accuracy or real-world safety.
+The `dev` extra installs dependencies for all safety, runtime, classification and chart tests. The replay CLI evaluates the **legacy action policy** against recorded synthetic probabilities. It reports aggregate metrics and case IDs without printing case text. Passing replay proves fixture routing and fallback behavior, not model accuracy or real-world safety.
 
 An opt-in live Jev test is also available:
 
@@ -311,6 +329,12 @@ For application evaluation, keep a labeled corpus covering benign research, ambi
 
 | Module | Responsibility |
 | --- | --- |
+| [runtime/api.py](src/decissions/runtime/api.py) | Common Runtime, policy admission, batching, deadlines and response envelope |
+| [runtime/core/engine.py](src/decissions/runtime/core/engine.py) | Single candidate-selection implementation |
+| [handlers.py](src/decissions/handlers.py) | Safety, assessment, presentation and classification handlers |
+| [contracts/](src/decissions/contracts/) | Shared domain contracts and decision receipts |
+| [classification.py](src/decissions/classification.py) | Configured categories and abstention |
+| [presentations/](src/decissions/presentations/), [renderers/](src/decissions/renderers/) | Data profiling, presentation selection and renderer payload compilation |
 | [assessment.py](src/decissions/assessment.py) | Evidence contracts, validation, family and subfamily assessment |
 | [registry.py](src/decissions/registry.py) | Strict JSON registry loader |
 | [adapters/jev_risk.py](src/decissions/adapters/jev_risk.py) | Jev adapter for the family API |
