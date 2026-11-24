@@ -64,7 +64,7 @@ The package is alpha (`0.3.0a1`) and requires Python 3.10 or later. Its example 
 Install from a source checkout:
 
 ```bash
-git clone https://github.com/BahulamAI/decissions.git decissions
+git clone https://github.com/BahulamAI/decisions.git decissions
 cd decissions
 python -m venv .venv
 source .venv/bin/activate
