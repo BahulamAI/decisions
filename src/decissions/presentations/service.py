@@ -5,12 +5,40 @@ import json
 import hashlib
 from dataclasses import dataclass
 from typing import Any, Protocol
+from pydantic import BaseModel, ConfigDict, Field
 
-from ..decisions.engine import DecisionEngine
-from ..decisions.models import DecisionRecord, SubjectRef
+from ..runtime.core.engine import Engine
+from ..runtime.config import ResolvedPolicy
+from ..contracts.models import DecisionRecord, SubjectRef
 from .contract import Candidate, Intent, ResultRef
 from .domain import PresentationDomain, candidate_of
 from .profile import ProfileInput, build_profile
+
+
+class PresentationPayload(BaseModel):
+    model_config = ConfigDict(extra='forbid', frozen=True)
+    reference: ResultRef
+    data: ProfileInput
+    intent: Intent = Field(default_factory=Intent)
+    title: str | None = Field(default=None, max_length=300)
+
+
+def validate_admission(data: ProfileInput, title: str | None = None) -> None:
+    """Shared preflight for direct calls and batches; never performs inference."""
+    if len(data.rows) > 1000 or len(data.fields) > 50:
+        raise ValueError('inline presentation exceeds row or field limits')
+    if title is not None and (not isinstance(title, str) or len(title) > 300):
+        raise ValueError('title must be bounded text')
+    if data.total_rows is not None and (data.total_rows < len(data.rows) or
+            (data.is_complete and data.total_rows != len(data.rows))):
+        raise ValueError('declared coverage contradicts supplied rows')
+    names = {f.name for f in data.fields}
+    if any(set(row) - names for row in data.rows):
+        raise ValueError('rows contain undeclared fields')
+    if any(isinstance(v, (list, dict)) for row in data.rows for v in row.values()):
+        raise ValueError('rows must contain scalar values')
+    if len(json.dumps(data.model_dump(mode='json'), allow_nan=False).encode()) > 2_000_000:
+        raise ValueError('inline presentation exceeds byte limit')
 
 
 class Renderer(Protocol):
@@ -32,39 +60,26 @@ class PresentationResult:
 
 
 class PresentationService:
-    def __init__(self, *, engine: DecisionEngine | None = None, renderer: Renderer | None = None):
+    def __init__(self, *, engine: Engine | None = None, renderer: Renderer | None = None):
         if renderer is None:
             from ..renderers.workplane.adapter import WorkplaneRenderer
             renderer = WorkplaneRenderer()
-        self.engine, self.renderer = engine or DecisionEngine(), renderer
+        self.engine, self.renderer = engine or Engine(), renderer
 
     async def present(self, *, request_id: str, tenant_id: str, reference: ResultRef,
                       data: ProfileInput, intent: Intent | None = None,
-                      title: str | None = None) -> PresentationResult:
+                      title: str | None = None, policy: ResolvedPolicy | None = None) -> PresentationResult:
         # Take one immutable-by-ownership snapshot before awaiting a remote selector.
         data = ProfileInput.model_validate(data.model_dump(mode='json'))
         intent = Intent.model_validate((intent or Intent()).model_dump(mode='json'))
         reference = ResultRef.model_validate(reference.model_dump(mode='json'))
-        if len(data.rows) > 1000 or len(data.fields) > 50:
-            raise ValueError('inline presentation exceeds row or field limits')
-        if title is not None and (not isinstance(title, str) or len(title) > 300):
-            raise ValueError('title must be bounded text')
-        if data.total_rows is not None and (data.total_rows < len(data.rows) or
-                (data.is_complete and data.total_rows != len(data.rows))):
-            raise ValueError('declared coverage contradicts supplied rows')
-        names = {f.name for f in data.fields}
-        if any(set(row) - names for row in data.rows):
-            raise ValueError('rows contain undeclared fields')
-        if any(isinstance(v, (list, dict)) for row in data.rows for v in row.values()):
-            raise ValueError('rows must contain scalar values')
-        if len(json.dumps(data.model_dump(mode='json'), allow_nan=False).encode()) > 2_000_000:
-            raise ValueError('inline presentation exceeds byte limit')
+        validate_admission(data, title)
         profile = build_profile(data)
         renderer = self.renderer
 
         class AvailableDomain(PresentationDomain):
             def eligibility(self, inp):
-                from ..decisions.models import Eligibility, Ineligible
+                from ..contracts.models import Eligibility, Ineligible
                 all_options = super().eligibility(inp)
                 available, rejected = [], list(all_options.ineligible)
                 for option in all_options.options:
@@ -87,7 +102,8 @@ class PresentationService:
             subject=subject,
             input={'result_ref':reference.model_dump(mode='json'), 'intent':intent.model_dump(mode='json'),
                    'profile':profile.model_dump(mode='json')},
-            preference=intent.preference.value if intent.preference else None)
+            preference=intent.preference.value if intent.preference else None,
+            **({'policy': policy} if policy is not None else {}))
         try:
             rendering = renderer.compile(candidate_of(decision.option), data, reference, intent, title)
             if not isinstance(rendering, dict):

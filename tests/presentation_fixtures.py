@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from decissions.decisions.models import DecisionContext
+from decissions.contracts.models import DecisionContext
 from decissions.presentations.contract import Intent, ResultRef
 from decissions.presentations.domain import PresentationDomain, PresentationInput
 from decissions.presentations.profile import FieldSpec, ProfileInput, build_profile

@@ -13,7 +13,7 @@ accepted and mean exactly what they meant before; they may not use what /2 added
 from __future__ import annotations
 
 import math
-from ..decisions.compat import StrEnum
+from ..contracts.compat import StrEnum
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator

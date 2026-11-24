@@ -3,8 +3,8 @@ default until a model beats it on that domain's locked test set."""
 
 from __future__ import annotations
 
-from decissions.decisions.domain import DecisionDomain
-from decissions.decisions.models import DecisionContext, Eligibility, SelectorOutput
+from decissions.contracts.domain import DecisionDomain
+from decissions.contracts.models import DecisionContext, Eligibility, SelectorOutput
 
 
 class RulesSelector:

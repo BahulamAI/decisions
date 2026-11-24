@@ -2,7 +2,7 @@
 from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, Protocol
-from decissions.decisions.models import DecisionRecord
+from decissions.contracts.models import DecisionRecord
 
 class Store(Protocol):
     """What the engine, API and tools need from a decision store."""

@@ -1,6 +1,4 @@
-"""The DecisionDomain plugin interface. Adding a new application capability = one subclass (or one JSON
-file, see config_domain.py) + a labelled eval set. No change to the engine, API, auth or storage.
-"""
+"""Domain plugin interface: eligible candidates and rules, executed by the shared runtime."""
 
 from __future__ import annotations
 
@@ -13,7 +11,7 @@ from .models import DecisionContext, Eligibility, FallbackReason, Option, RiskTi
 
 
 class Scorer(ABC):
-    """Optional in-house model for a domain (Track B). Returns probabilities over eligible options."""
+    """Optional in-house model returning probabilities over eligible options."""
 
     release: str
     calibration_version: str | None = None

@@ -7,8 +7,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from ..decisions.domain import DecisionDomain
-from ..decisions.models import (
+from ..contracts.domain import DecisionDomain
+from ..contracts.models import (
     DecisionContext,
     Eligibility,
     FallbackReason,

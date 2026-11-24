@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from decissions.decisions.compat import StrEnum
+from decissions.contracts.compat import StrEnum
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import AliasChoices, BaseModel, Field, SecretStr, model_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _BUILTIN_CONFIGS = Path(__file__).parent / "domain_configs"
@@ -22,12 +22,13 @@ class SelectorKind(StrEnum):
 class DomainPolicy(BaseModel):
     """Per-domain overrides. Anything left None inherits the domain's own defaults, then the global setting."""
 
+    model_config = ConfigDict(extra='forbid', frozen=True)
     serving: SelectorKind | None = None
     shadows: list[SelectorKind] | None = None
-    min_auto_confidence: float | None = None
-    min_fit_probability: float | None = None
-    deadline_ms: int | None = None  # the whole decision
-    selector_deadline_ms: int | None = None  # the model's share of it
+    min_auto_confidence: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
+    min_fit_probability: float | None = Field(default=None, ge=0, le=1, allow_inf_nan=False)
+    deadline_ms: int | None = Field(default=None, gt=0)
+    selector_deadline_ms: int | None = Field(default=None, gt=0)
     on_selector_failure: Literal["rules", "safe_default"] | None = None  # HIGH-risk domains always safe_default
     external_inference_tenants: list[str] | None = None
     allowed_groups: list[str] | None = None  # kill switch per option family: only these may be offered
@@ -145,17 +146,19 @@ class Settings(BaseSettings):
 
 
 class ResolvedPolicy(BaseModel):
+    model_config = ConfigDict(extra='forbid', frozen=True)
     serving: SelectorKind
     shadows: list[SelectorKind]
-    min_auto_confidence: float
-    min_fit_probability: float
-    deadline_ms: int
-    selector_deadline_ms: int
+    min_auto_confidence: float = Field(ge=0, le=1, allow_inf_nan=False)
+    min_fit_probability: float = Field(ge=0, le=1, allow_inf_nan=False)
+    deadline_ms: int = Field(gt=0)
+    selector_deadline_ms: int = Field(gt=0)
     on_selector_failure: Literal["rules", "safe_default"]
     external_inference_tenants: list[str]
     allowed_groups: list[str] | None = None
     tenant_allowed_groups: dict[str, list[str]] | None = None
     model_routing: str = "always"
+    policy_ref: str | None = None  # Common API route identity, included in replay keys.
 
     def groups_for(self, tenant_id: str) -> list[str] | None:
         if self.tenant_allowed_groups and tenant_id in self.tenant_allowed_groups:

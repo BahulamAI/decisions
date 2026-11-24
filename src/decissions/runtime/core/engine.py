@@ -28,8 +28,9 @@ from ..config import ResolvedPolicy, SelectorKind, Settings
 from ..observability import METRICS, log
 from ..persistence.store import LRUCache, Store
 from ..selectors.base import Selector, SelectorError
-from decissions.decisions.domain import DecisionDomain
-from decissions.decisions.models import (
+from ..selectors.rules import RulesSelector
+from decissions.contracts.domain import DecisionDomain
+from decissions.contracts.models import (
     DecisionContext,
     DecisionRecord,
     Eligibility,
@@ -39,6 +40,7 @@ from decissions.decisions.models import (
     RiskTier,
     SelectionSource,
     SelectorOutput,
+    SubjectRef,
 )
 
 logger = logging.getLogger("decision.engine")
@@ -49,11 +51,14 @@ _SOURCE = {SelectorKind.RULES: SelectionSource.RULE, SelectorKind.HOSTED: Select
 
 @dataclass
 class Engine:
-    settings: Settings
-    store: Store
-    selectors: dict[SelectorKind, Selector]
+    settings: Settings = field(default_factory=Settings)
+    store: Store | None = None
+    selectors: dict[SelectorKind, Selector] = field(default_factory=dict)
     cache: LRUCache = field(default_factory=lambda: LRUCache(10_000))
     _bg: set[asyncio.Task] = field(default_factory=set)
+
+    def __post_init__(self) -> None:
+        self.selectors = {SelectorKind.RULES: RulesSelector(), **self.selectors}
 
     def serving_kind(self, domain: DecisionDomain, tenant_id: str, pol: ResolvedPolicy) -> SelectorKind:
         if self.settings.rules_only:  # global kill switch
@@ -65,9 +70,24 @@ class Engine:
             return SelectorKind.RULES
         return kind if kind in self.selectors else SelectorKind.RULES
 
-    async def decide(self, domain: DecisionDomain, ctx: DecisionContext) -> DecisionRecord:
+    async def decide(self, domain: DecisionDomain, ctx: DecisionContext | None = None, *,
+                     request_id: str | None = None, tenant_id: str | None = None,
+                     subject: SubjectRef | None = None, input: dict | None = None,
+                     preference: str | None = None, policy: ResolvedPolicy | None = None) -> DecisionRecord:
+        if ctx is None:
+            if not request_id or not tenant_id or subject is None or input is None:
+                raise ValueError('request, tenant, subject and input are required')
+            ctx = DecisionContext(domain=domain.name, request_id=request_id, tenant_id=tenant_id,
+                                  subject=subject, input=domain.input_model.model_validate(input),
+                                  preference=preference)
+        elif any(x is not None for x in (request_id, tenant_id, subject, input, preference)):
+            raise ValueError('provide either a context or named input fields')
+        if ctx.domain != domain.name or not ctx.request_id or not ctx.tenant_id:
+            raise ValueError('context identity does not match domain')
+        # A model_copy or a mutable nested input must not bypass domain validation.
+        ctx = ctx.model_copy(update={'input': domain.input_model.model_validate(ctx.input.model_dump())})
         t0 = time.perf_counter()
-        pol = self.settings.policy(domain.name, domain.policy_defaults)
+        pol = policy or self.settings.policy(domain.name, domain.policy_defaults)
         kind = self.serving_kind(domain, ctx.tenant_id, pol)
         skipped = domain.model_allowed(ctx) if kind != SelectorKind.RULES else None
         if skipped:  # this input must not reach a model at all
@@ -82,13 +102,17 @@ class Engine:
         key = "sha256:" + hashlib.sha256(json.dumps({"context": ctx.input_hash(domain.version, release),
             "policy": pol.model_dump(mode="json")}, sort_keys=True).encode()).hexdigest()
 
-        cached = self.cache.get(key) or await self.store.get_by_hash(ctx.tenant_id, key)
+        cached = (self.cache.get(key) or await self.store.get_by_hash(ctx.tenant_id, key)) if self.store else None
         if cached:
             METRICS.inc("decision_replays", domain=domain.name)
             self.cache.put(key, cached)
             return cached.model_copy(update={"replayed": True})
 
         elig = self._allowed(domain.eligibility(ctx.input), ctx.tenant_id, pol)
+        ids = [o.option_id for o in elig.options]
+        if len(ids) != len(set(ids)):
+            raise ValueError('domain returned duplicate option identities')
+        elig.safe_default  # Every domain must supply an eligible fallback.
         reasons: list[str] = []
         if skipped:
             reasons.append(f"MODEL_SKIPPED:{skipped}")
@@ -118,32 +142,41 @@ class Engine:
         if chosen is None:
             # The rules answer comes first: it is what we serve if the model cannot give one in time.
             rules_answer = elig.by_id(domain.rules_select(ctx, elig)) or elig.safe_default
-            choice = elig if kind == SelectorKind.RULES else self._choice(domain, ctx, elig)
-            option_count = len(choice.options)
             budget = pol.selector_deadline_ms / 1000
             ts = time.perf_counter()
             failed = False
             try:
-                out = await asyncio.wait_for(selector.select(domain, ctx, choice, budget), timeout=budget)
+                choice = elig if kind == SelectorKind.RULES else self._choice(domain, ctx, elig)
+                option_count = len(choice.options)
+                raw = await asyncio.wait_for(selector.select(domain, ctx, choice, budget), timeout=budget)
+                out = SelectorOutput.model_validate(raw)
                 chosen, source, fallback = self._validate(out, choice, elig, kind, pol)
                 failed = fallback == FallbackReason.INVALID_RESPONSE  # a broken answer is a failure, not a doubt
-            except (asyncio.TimeoutError, SelectorError) as e:
-                fallback, failed = getattr(e, "reason", FallbackReason.TIMEOUT), True
+            except Exception as e:
+                fallback = (FallbackReason.TIMEOUT if isinstance(e, asyncio.TimeoutError)
+                            else e.reason if isinstance(e, SelectorError)
+                            else FallbackReason.PROVIDER_ERROR)
+                failed = True
                 chosen, source = elig.safe_default, SelectionSource.FALLBACK
                 log(logger, "selector_failed", domain=domain.name, selector=kind.value, reason=fallback.value,
                     error=type(e).__name__)
             if failed and self._rules_on_failure(domain, pol):
                 chosen, source = rules_answer, SelectionSource.RULE
                 reasons.append("SELECTOR_FAILED_RULES_SERVED")
+            if fallback != FallbackReason.NONE:
+                out = None  # Rejected evidence must not be attributed to the fallback answer.
             METRICS.observe("selector_latency_ms", (time.perf_counter() - ts) * 1000,
                             domain=domain.name, selector=kind.value)
 
         if source in (SelectionSource.RULE, SelectionSource.HOSTED, SelectionSource.IN_HOUSE):
             variant = domain.variant_for(ctx, elig, chosen)
-            if variant.option_id != chosen.option_id:
-                reasons.append(f"VARIANT:{variant.group}")
-                chosen = variant
-        assert elig.by_id(chosen.option_id) is not None  # invariant 1
+            canonical = elig.by_id(variant.option_id)
+            if canonical is None:
+                chosen, source, fallback, out = elig.safe_default, SelectionSource.FALLBACK, FallbackReason.INVALID_RESPONSE, None
+            else:
+                if canonical.option_id != chosen.option_id:
+                    reasons.append(f"VARIANT:{canonical.group}")
+                chosen = canonical
         reasons += domain.reason_codes(chosen)
         if out and out.model_release:
             reasons += [f"MODEL_JUDGMENT:{k.upper()}" for k, v in out.signals.items() if v >= _STRONG_SIGNAL]
@@ -162,7 +195,7 @@ class Engine:
             fallback_reason=fallback,
             approval_required=domain.approval_required(chosen, source.value,
                                                        out.provider_confidence if out else None),
-            provider="openrouter" if kind == SelectorKind.HOSTED and out else None,
+            provider=selector.name if kind != SelectorKind.RULES and out else None,
             model=out.model if out else None,
             model_release=out.model_release if out else None,
             probabilities=out.probabilities if out else None,
@@ -180,8 +213,9 @@ class Engine:
             input_summary=domain.audit_summary(ctx),
             probability_margin=self._margin(out),
         )
-        record = await self.store.save(record)
-        self.cache.put(key, record)
+        if self.store:
+            record = await self.store.save(record)
+            self.cache.put(key, record)
         # One line per decision: ids, versions and outcomes only. Never input values or user text.
         log(logger, "decision_made", decision_id=record.decision_id, domain=domain.name, tenant=ctx.tenant_id,
             option=record.option_id, source=record.selection_source.value, fallback=record.fallback_reason.value,
@@ -189,7 +223,7 @@ class Engine:
         METRICS.inc("decisions", domain=domain.name, source=record.selection_source.value,
                     fallback=record.fallback_reason.value, type=domain.metric_type(record.option))
         METRICS.observe("decision_latency_ms", record.latency_ms, domain=domain.name)
-        if source != SelectionSource.USER and len(elig.options) > 1:
+        if self.store and source != SelectionSource.USER and len(elig.options) > 1:
             self._spawn_shadows(domain, ctx, elig, record, pol, kind)
         return record
 
@@ -206,7 +240,11 @@ class Engine:
 
     @staticmethod
     def _choice(domain: DecisionDomain, ctx: DecisionContext, elig: Eligibility) -> Eligibility:
-        options = domain.choice_options(ctx, elig) or [elig.safe_default]
+        options = domain.choice_options(ctx, elig)
+        ids = [o.option_id for o in options]
+        if not ids or len(set(ids)) != len(ids) or any(elig.by_id(oid) is None for oid in ids):
+            raise ValueError('invalid provider option set')
+        options = [elig.by_id(oid) for oid in ids]
         safe = elig.safe_default_id if any(o.option_id == elig.safe_default_id for o in options) \
             else options[0].option_id
         return Eligibility(options, elig.ineligible, safe)
@@ -235,6 +273,9 @@ class Engine:
             return elig.safe_default, SelectionSource.FALLBACK, FallbackReason.ABSTAINED
         opt = choice.by_id(out.option_id)
         if opt is None:
+            return elig.safe_default, SelectionSource.FALLBACK, FallbackReason.INVALID_RESPONSE
+        if out.probabilities is not None and (set(out.probabilities) != {o.option_id for o in choice.options}
+                or abs(sum(out.probabilities.values()) - 1) > 0.02):
             return elig.safe_default, SelectionSource.FALLBACK, FallbackReason.INVALID_RESPONSE
         if out.fit_probability is not None and out.fit_probability < pol.min_fit_probability:
             return elig.safe_default, SelectionSource.FALLBACK, FallbackReason.ABSTAINED

@@ -1,135 +1,211 @@
-# Decissions: reusable modules
+# One runtime, policy-selected capabilities
 
-The local repository directory, Python package and distribution are named `decissions`.
-The GitHub repository is `BahulamAI/decissions`. This is an intentional import change: no `chat_safety`
-compatibility package is shipped. CodeKepler and EntityBI adoption is a separate change.
+`from decissions import Runtime` is the common package entry point. `decide(...)` and
+`decide_many(...)` share policy admission, input validation, timeouts and response serialization.
 
-## Implemented boundaries
-
-| Module | Responsibility | Dependencies |
-|---|---|---|
-| `decissions.assessment`, `engine`, `registry`, `session` | Existing risk evidence, application policy and session behavior | Standard library; optional Jev HTTP adapter |
-| `decissions.decisions` | Typed domain and selector interfaces, eligibility, bounded selection and decision receipts | Optional Pydantic |
-| `decissions.presentations` | Generic field profiling, intent, chart eligibility and presentation orchestration | Decisions plus optional JSON Schema validation for the built-in catalog |
-| `decissions.renderers.workplane` | Workplane chart/table compilation and contract validation | Presentation contracts, JSON Schema |
-| `decissions.adapters.jev_decision` | Jev Choice among eligible candidates, with fit assessment | Decisions plus existing optional Jev transport |
-| `decissions.adapters.jev_risk` | Existing risk-family assessment | Existing safety assessment types and Jev transport |
-
-Assessment probabilities remain evidence. Chart selection is a separate candidate decision and never
-grants access or runs tools. Data authorization, fetching, storage, replay, product policies and tenant
-admission remain with the consuming application. Tenant strings in the in-process API are audit scope,
-not authenticated permission grants. This implementation adds no HTTP service, database or deployment.
-
-The decision interface can later support model routing, tool selection and other candidate-selection
-domains. PII detection would require its own evidence/span contract and evaluator: it is not implemented
-by reusing a chart choice or interpreting a risk score as a detected entity. Existing safety APIs remain
-the first production-consumer use case; charts are the second implemented module.
-
-## Extraction, not a competing implementation
-
-Profiling, semantic guards, catalog loading, presentation policy, domain selection rules, core decision
-contracts and Workplane compilation were extracted from the current `entitybi-decision-service` working
-tree. `decision-extraction.json` records source paths and hashes, including uncommitted source work.
-EntityBI result-kind enums, FileTask/workspace/run requirements, APIs, data access, persisted service state,
-training infrastructure and product-specific domains were not imported. The original repository is retained
-until consumers move; do not delete its code before cutover.
-
-The built-in presentation catalog is an initial bounded policy, not a promise that every Workplane chart
-can be selected. It supports comparisons, shares, distributions, trends, series, networks and hierarchies
-subject to semantic guards. A chart renderer supporting a type does not automatically make that type
-eligible. Business-specific category names are ordinary data, not built-in result types.
-
-## Public use
-
-Install from this checkout with `pip install '.[presentations]'`. Add `jev` for hosted selection:
-`pip install '.[presentations,jev]'`. `pip install '.[dev]'` installs all local test dependencies.
-No package publication is part of this change.
-
-```python
-from decissions.presentations import (
-    PresentationService, ProfileInput, FieldSpec, ResultRef, Intent,
-)
-
-result = await PresentationService().present(
-    request_id="chart-1", tenant_id="tenant-1",
-    reference=ResultRef(result_id="authorized-result", revision=1,
-                        content_hash="sha256:" + "a" * 64),  # use the actual host result hash
-    data=ProfileInput(
-        fields=[FieldSpec(name="region", role="dimension", dtype="string"),
-                FieldSpec(name="orders", role="measure", dtype="integer",
-                          semantics="count", additive=True)],
-        rows=[{"region": "East", "orders": 12}, {"region": "West", "orders": 8}],
-        is_complete=True, total_rows=2,
-    ),
-    intent=Intent(text="Compare orders by region"),
-)
-# result.decision: candidate, alternatives, rejection reasons and provenance
-# result.rendering: Workplane snapshot with exact-values table and optional chart
-# result.rendering_status: ready or table_fallback
+```text
+Runtime.decide / Runtime.decide_many
+  -> pin policy/version, check tenant admission, snapshot input
+  -> handler.prepare (typed validation, no I/O)
+  -> handler.execute (bounded by policy deadline)
+       safety.policy     -> existing SafetyGate and its policy
+       safety.assessment -> existing RiskAssessor and its registry
+       presentation      -> profile -> runtime selection -> renderer
+       classification    -> runtime selection -> label or abstention
+  -> decissions.response/1
 ```
 
-An explicit eligible preference wins. An ineligible preference cannot force a misleading chart; the
-receipt exposes why that candidate was rejected. Nulls stay unknown, scores cannot become shares,
-similarity cannot become flow and incomplete denominators block part-to-whole charts.
+Candidate selection has one implementation, `runtime/core/engine.py`. Safety retains its
+assessment/action-policy semantics instead of being forced into a single-choice classifier.
+Existing safety integrations and wire formats remain supported.
 
-The reference hash is host-provided provenance, not independent verification of source truth. The service
-also hashes its bounded admitted data and binds that digest and renderer identity into the decision subject.
-It snapshots data before awaiting a provider, so mutable caller rows cannot change between selection and
-compilation. The library does not establish that the host fetched the correct data.
+## Adopting an existing chat-safety integration
 
-For Jev, construct `DecisionEngine(selector=JevDecisionSelector(api_key=..., model=...,
-endpoint=...))` and pass it to `PresentationService`. The selector receives profile metadata,
-trusted candidate descriptions and explicitly untrusted user intent—not raw result rows or category labels.
-Field names, units and user intent may still contain sensitive content; the host must approve those disclosures.
-Credentials and endpoint are explicitly configured, and no fallback to a different provider is performed.
-No live Jev call has been made for this implementation; adapter tests use mocked HTTP responses.
+Replace the legacy `chat-safety[jev]` dependency with an immutable source pin to
+`decissions[api,jev]` in every dependency manifest and regenerate the application's
+lockfile. Import assessment contracts and `JevRiskEvaluator` from `decissions`.
+Register `RiskAssessmentHandler(RiskAssessor(registry, evaluator))` under a versioned
+policy, then invoke `Runtime.decide` for both family and selected-subfamily checks.
+The policy version must equal the registry version; pass `family_ids` for the latter.
 
-## Renderer independence
+Keep the application's existing risk/intent batching, nudge/observe modes, history
+selection and output buffering/rewrite policy. These are host behavior, not candidate
+selection settings. The common envelope's `result` retains the assessment wire schema,
+input/registry digests and model provenance. If `status` is unavailable and `result` is
+empty, take the existing unavailable path; never treat missing evidence as permission
+to release an output. A serialized assessment is JSON-compatible; consumers that need
+the original dataclasses should validate it when decoding at their boundary.
 
-Implement the `Renderer` protocol with `name`, `supports(candidate)` and
-`compile(candidate, data, reference, intent, title)`. Eligibility is intersected with that adapter's
-capabilities before selection. Every adapter must support the safe table/empty-state fallback.
-Another renderer may reuse the built-in semantic catalog or introduce a separate trusted domain;
-the decision kernel never imports Workplane or a product backend.
+CodeKepler's input and output assessment adapters use this pattern. Its gateway remains
+the configured platform Decisions endpoint, and the library migration requires no
+new gateway, credentials, database tables or policy thresholds. Package pins should be
+updated before the backend image is rebuilt. Opening or merging a package PR does not
+by itself update an already-running application image.
 
-A selection failure returns the domain's eligible safe default. A compilation failure returns
-`decision-platform.table/1`, with exact admitted values and disclosures.
-Hosts must handle this renderer-independent fallback and supply an accessible table; the chart widget alone
-is not the entire accessibility experience. A receipt records the attempted decision separately from rendering
-status, so a compilation fallback is not reported as a successful chart rendering.
+## Configure once, call uniformly
 
-## Versions and compatibility
+```python
+from decissions import (
+    Runtime, DecisionPolicy, DomainPolicy, SelectorKind,
+    SafetyHandler, RiskAssessmentHandler, PresentationHandler, ClassificationHandler,
+)
 
-Existing assessment/policy/session wire schema names remain unchanged to avoid gratuitous evidence-format
-changes. New decision/presentation schemas use `decision-platform.*`. Workplane payloads retain the upstream
-`workplane.chat-chart/1` envelope. The Python import rename is intentionally breaking and requires backend
-adoption later. No backend, frontend or consumer deployment was changed here.
+runtime = Runtime(
+    policies=[
+        DecisionPolicy(id="chat", version=gate.policy.version, handler="safety"),
+        DecisionPolicy(id="risks", version=assessor.registry.version, handler="risks"),
+        DecisionPolicy(id="chart", version="1", handler="charts"),
+        DecisionPolicy(id="topics", version="1", handler="topics", selection=DomainPolicy(
+            serving="hosted_model", external_inference_tenants=["tenant-1"],
+            min_fit_probability=0.5, min_auto_confidence=0.6,
+        )),
+    ],
+    handlers={
+        "safety": SafetyHandler(gate),
+        "risks": RiskAssessmentHandler(assessor),
+        "charts": PresentationHandler(),
+        "topics": ClassificationHandler(version="1",
+            question="Which team should handle this message?",
+            candidates={"billing": "Invoices and payments", "support": "Technical issues"}),
+    },
+    selectors={SelectorKind.HOSTED: selector},
+    store=store,  # optional host-owned persistence
+)
 
-The in-process engine supplies a deterministic receipt, not durable idempotency storage. Hosts own durable
-replay and concurrency control. It does not import the original service's cache, auth, budgets or database.
+answer = await runtime.decide(
+    policy="topics", policy_version="1", request_id="row-42", tenant_id="tenant-1",
+    input={"text": "Please send my invoice"},
+)
+label = answer.result.get("label")  # None on abstention
 
-## Verification
+assessment = await runtime.decide(
+    policy="chat", policy_version=gate.policy.version,
+    request_id="message-1", tenant_id="tenant-1",
+    input={"content": "Explain the options", "actor_ref": "user-1", "stage": "input"},
+)
+```
 
-Run `PYTHONPATH=src python -m pytest -q`. Tests cover existing safety behavior, extracted chart eligibility
-and compilation, selector failure/timeout, out-of-set choices, alternate renderers, tenant-separated hashes,
-input bounds and Jev data minimization. The 30 compiled chart fixtures were also checked against the local
-Workplane JavaScript validator. Browser visual/interaction acceptance and live-provider calibration remain
-consumer-integration work.
+`gate`, `assessor`, `selector` and `store` are host-configured objects. Omit unused handlers,
+selectors and persistence. Default selection is rules; an unavailable classification provider
+produces abstention, never an invented label. Example thresholds are not calibrated recommendations.
+Runnable offline demos are `examples/unified.py` and `examples/sql_classification.py`.
 
-The package rename retains existing wire schema identifiers (`chat-safety.*`, `decision-platform.*` and `workplane.chat-chart/1`). These identify contracts, not Python import paths. No legacy import package is shipped.
+Safety thresholds, hard rules, shadow/enforce mode and session behavior come from the installed
+`PolicyBundle`. The route version must match that bundle or assessment registry. Classification
+routes must match their category-definition version. Requests cannot override providers or policy.
 
+## Common contract
 
-## Preserved operational capabilities (0.2.0a1)
+Requests contain `policy`, `policy_version`, `request_id`, `tenant_id` and typed `input`.
+Responses contain:
 
-`decissions.runtime` preserves the source engine's versioned policies, model routing,
-provider budgets, circuit breakers, shared Redis rate limits and metrics. Its Store
-protocol is supplied by the host; the package owns no EntityBI database or credentials.
-`decissions.presentations.saved` validates revision/data identity and recompiles eligible
-saved options. `decissions.decisions.feedback` supplies the pending-review and review
-state transitions; hosts must authorize actors and persist atomically.
-`decissions.testing.presentations` is the reusable synthetic evaluation harness.
-BI result adapters, BI fixtures and ranker artifacts remain in EntityBI.
+| Field | Meaning |
+|---|---|
+| `schema_version` | `decissions.response/1` |
+| `request_id`, `tenant_id` | Correlation and scope |
+| `policy`, `policy_version`, `policy_digest` | Selected route configuration |
+| `kind` | Capability identifier |
+| `status` | `complete`, `fallback` or `unavailable` |
+| `result` | Capability-specific structured fields |
+| `error_code` | Sanitized unavailability code |
+| `latency_ms` | Execution time excluding the batch queue |
 
-The extraction manifest records the other developer's current source hashes. No
-hosted inference or shadow rollout is enabled implicitly. Install operational modules
-with the `runtime` extra; the original lightweight API remains available.
+`complete` means the operation completed, not that its answer is safe/allowed/correct. A safety
+refusal is a complete assessment. Consumers must inspect the action. Check status before accessing
+result fields: an outer timeout returns unavailable with an empty result. Existing SafetyGate
+provider errors retain its configured fallback behavior.
+
+Classification returns `label`, `disposition`, `probabilities` and `decision`. Its internal abstention
+option is excluded from the model's candidate distribution. Definitions are fingerprinted into the
+domain revision. Presentations return `decision`, `rendering`, `renderer` and `rendering_status`.
+Risk assessments retain `chat-safety.assessment/1` fields. Independent risk scores are never
+renormalized into categorical probabilities.
+
+## JSON policy configuration
+
+```json
+{
+  "schema_version": "decissions.policies/1",
+  "policies": [{
+    "id": "topics", "version": "1", "handler": "topics",
+    "tenants": ["tenant-1"], "timeout_seconds": 10,
+    "selection": {
+      "serving": "hosted_model",
+      "external_inference_tenants": ["tenant-1"],
+      "min_fit_probability": 0.5
+    }
+  }]
+}
+```
+
+Use `load_decision_policies(path)` and supply a trusted handler mapping to Runtime. Unknown
+handlers fail startup; duplicate IDs/JSON keys and unknown fields are rejected. `tenants: null`
+allows any host-authenticated tenant to use the route; `tenants: []` permits none. `enabled: false`
+disables it. Hosted candidate selection additionally requires `external_inference_tenants`.
+Route selection overrides domain/global settings. Runtime policy digests namespace replay keys.
+
+The global `rules_only` switch and hosted selector admission govern candidate selection. Safety
+evaluators are explicitly installed through their handlers and retain their existing policies and
+host configuration. A route cannot change a safety gate's mode or thresholds through `selection`.
+
+With a store, the runtime retains cache/replay, policies, budgets, circuit breakers and shadow
+comparisons. The host store owns atomic replay/durability. With no store there is no implicit replay
+or shadow persistence. Call `await runtime.drain()` before closing host-owned resources when shadows
+are enabled. A policy's tenant string scopes work; the host must authenticate it.
+
+## Provider setup
+
+```python
+import httpx
+from decissions import JevSelector, SelectorKind
+
+async with httpx.AsyncClient() as client:
+    selector = JevSelector(client=client, api_key=trusted_api_key,
+        url=trusted_decisions_endpoint, model=pinned_model)
+    # Install {SelectorKind.HOSTED: selector} and use Runtime while client is open.
+```
+
+There is one categorical Jev adapter: Choice + companion fit + optional domain signals. It validates
+candidate coverage, normalization, answer types, fit coverage and model revision. Safety's Boolean
+adapters retain their distinct contracts. Tests use mocked providers; they do not calibrate live models.
+
+## SQL-row classification and batches
+
+[MotherDuck's integration](https://motherduck.com/blog/motherduck-supports-jev/) classifies text
+columns inside SQL. This package provides classification through Python: fetch authorized rows,
+build one request per row and call `decide_many`. Use bounded `fetchmany` reads for large tables.
+
+`examples/sql_classification.py` demonstrates read/classify/store using SQLite in memory and a
+synthetic selector. It preserves row identity and stores status plus receipts; abstentions have null
+labels. It does not install a native DuckDB/MotherDuck UDF or claim the linked benchmark's performance.
+A database-specific adapter can call this same runtime later.
+
+Batches default to at most 500 requests and concurrency 16. Results retain input order. Preflight
+rejects invalid policies/input before execution; individual provider failures preserve other results.
+IDs must be unique per tenant within a batch. Cancellation propagates.
+
+## Extensions and migration
+
+Implement `DecisionHandler`: `kind`, synchronous `prepare(request, policy)` without I/O, and async
+`execute(prepared, request, policy, engine)` returning `DecisionOutcome`. Register its name and a
+policy. Candidate-based extensions implement `decissions.contracts.DecisionDomain` and call the
+supplied engine rather than adding an execution implementation.
+
+| Module | Responsibility |
+|---|---|
+| `decissions` | Shallow imports for Runtime, policies, request/response and handlers |
+| `runtime` | Common API, the selection engine, provider/persistence/operational support |
+| `contracts` | Domain interfaces, candidate/receipt types and review contracts |
+| `assessment`, `engine`, `session` | Preserved safety behavior |
+| `presentations` | Chart profiling, eligibility and saved-presentation validation |
+| `renderers.workplane` | Rendering compiler and contract |
+| `classification` | Configured text classification |
+
+The inner `decisions` package is renamed to `contracts`. `DecisionEngine` and `JevDecisionSelector`
+are removed without aliases. Direct PresentationService calls now use the same runtime engine;
+new integrations should use Runtime for all capabilities. Historical extraction manifests record
+original paths, not the current module layout. No database, HTTP server or deployment is added.
+
+Install `.[api,presentations]`; run `PYTHONPATH=src python -m pytest -q` and the two examples. Existing
+safety tests remain, alongside common API, mixed-batch, classification and malformed-provider tests.
+The host retains authentication, trusted context, data access, action execution and retention.

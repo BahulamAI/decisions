@@ -1,10 +1,10 @@
-"""Track B: runs a domain's own in-house Scorer (if it has one). Domains without a trained model
+"""Runs a domain's own in-house Scorer (if it has one). Domains without a trained model
 raise SelectorUnavailable, and the engine falls back to rules for them."""
 
 from __future__ import annotations
 
-from decissions.decisions.domain import DecisionDomain
-from decissions.decisions.models import DecisionContext, Eligibility, SelectorOutput
+from decissions.contracts.domain import DecisionDomain
+from decissions.contracts.models import DecisionContext, Eligibility, SelectorOutput
 from .base import SelectorUnavailable
 
 

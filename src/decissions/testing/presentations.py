@@ -15,7 +15,7 @@ from typing import Any
 
 from decissions.runtime.config import SelectorKind, Settings
 from decissions.runtime.core.engine import Engine
-from decissions.decisions.models import DecisionContext, Eligibility
+from decissions.contracts.models import DecisionContext, Eligibility
 from decissions.renderers.workplane.compiler import CompileError, compile_spec
 from decissions.presentations.contract import Intent, ResultRef
 from decissions.presentations.domain import PresentationDomain, PresentationInput, candidate_of

@@ -1,4 +1,4 @@
-"""Track A: TypeSafe Jev through the OpenRouter Decisions API (POST /api/alpha/decisions), for ANY domain.
+"""TypeSafe Jev through a configured Decisions endpoint, for any candidate-selection domain.
 
 Wire format (TypeSafe native schema, passed through by OpenRouter):
     request  {"model", "state", "questions": {id: {"type": "choice"|"noul", "instructions", "criteria"}}}
@@ -23,8 +23,8 @@ from typing import Any
 
 import httpx
 
-from decissions.decisions.domain import DecisionDomain
-from decissions.decisions.models import DecisionContext, Eligibility, SelectorOutput
+from decissions.contracts.domain import DecisionDomain
+from decissions.contracts.models import DecisionContext, Eligibility, SelectorOutput
 from ..shared import LocalState
 from .base import (
     SelectorBudgetExceeded,
@@ -35,6 +35,7 @@ from .base import (
     SelectorTimeout,
 )
 from .jev_cost import BudgetGuard, CacheMiss, ResponseCache, payload_key
+from decissions.adapters.jev import _validate_endpoint
 
 CHOICE_ID = "choice"
 FIT_ID = "faithful_option_exists"
@@ -76,7 +77,9 @@ def build_state(domain: DecisionDomain, ctx: DecisionContext) -> dict[str, Any]:
 
 
 def build_questions(domain: DecisionDomain, elig: Eligibility, include_signals: bool = True) -> dict[str, Any]:
-    options = elig.options[:MAX_OPTIONS]
+    if not 1 <= len(elig.options) <= MAX_OPTIONS:
+        raise SelectorInvalidResponse('candidate count must be between 1 and 255')
+    options = elig.options
     criteria = {o.option_id: {**o.description, "caveats": ", ".join(o.disclosures) or "none"} for o in options}
     q: dict[str, Any] = {
         CHOICE_ID: {"type": "choice", "instructions": domain.choice_instructions, "criteria": criteria},
@@ -99,20 +102,32 @@ def _prob(x: Any) -> float:
     return float(x)
 
 
-def parse_response(body: Any, elig: Eligibility) -> SelectorOutput:
+def parse_response(body: Any, elig: Eligibility, *, model: str | None = None,
+                   signal_names: set[str] | None = None) -> SelectorOutput:
     try:
+        release = body['model']
+        if not isinstance(release, str) or not release or (model is not None and
+                not (release == model or release.startswith(model + '-'))):
+            raise SelectorInvalidResponse('unexpected model release')
         answers = body["answers"]
         choice = answers[CHOICE_ID]
+        if choice['type'] != 'choice' or answers[FIT_ID]['type'] != 'noul':
+            raise SelectorInvalidResponse('wrong answer type')
+        expected = {CHOICE_ID, FIT_ID} | {SIGNAL_PREFIX + name for name in (signal_names or set())}
+        if set(answers) != expected:
+            raise SelectorInvalidResponse('missing or unexpected answers')
         picked = choice["choice"]
         probs = {str(k): _prob(v) for k, v in choice["probabilities"].items()}
         conf = _prob(choice["confidence"]) if choice.get("confidence") is not None else None
-        fit = _prob(answers[FIT_ID]["noul"]) if FIT_ID in answers else None
+        fit = _prob(answers[FIT_ID]["noul"])
+        if any(v.get('type') != 'noul' for k, v in answers.items() if k.startswith(SIGNAL_PREFIX)):
+            raise SelectorInvalidResponse('wrong signal type')
         signals = {k.removeprefix(SIGNAL_PREFIX): _prob(v["noul"])
                    for k, v in answers.items() if k.startswith(SIGNAL_PREFIX)}
     except (KeyError, TypeError, AttributeError) as e:
         raise SelectorInvalidResponse(f"missing field: {e}") from e
     valid = {o.option_id for o in elig.options}
-    if picked not in valid or set(probs) - valid:
+    if picked not in valid or set(probs) != valid:
         raise SelectorInvalidResponse("answer outside the option set")
     if abs(sum(probs.values()) - 1.0) > 0.02:
         raise SelectorInvalidResponse("probabilities not normalized")
@@ -126,9 +141,11 @@ class JevSelector:
     def __init__(self, client: httpx.AsyncClient, api_key: str, url: str, model: str,
                  max_retries: int = 1, breaker: CircuitBreaker | None = None,
                  cache: ResponseCache | None = None, budget: BudgetGuard | None = None,
-                 app_title: str = "EntityBI Decision Service", app_url: str = "",
+                 app_title: str = "Decissions", app_url: str = "",
                  include_signals: bool = True, shared: LocalState | None = None, cache_ttl_s: int = 0) -> None:
-        self.client, self.api_key, self.url, self.model = client, api_key, url, model
+        if not api_key or not model:
+            raise ValueError('credentials and pinned model are required')
+        self.client, self.api_key, self.url, self.model = client, api_key, _validate_endpoint(url), model
         self.include_signals = include_signals  # intent yes/no questions; off saves tokens when serving
         self.max_retries = max_retries
         self.breaker = breaker or CircuitBreaker(5, 30.0)
@@ -153,7 +170,8 @@ class JevSelector:
         if cached is None and self.shared is not None and self.cache_ttl_s:
             cached = await self.shared.cache_get(key)
         if cached is not None:
-            out = parse_response(cached, elig)
+            out = parse_response(cached, elig, model=self.model,
+                                 signal_names=set(domain.signal_questions()) if self.include_signals else set())
             out.model, out.usage = self.model, {**out.usage, "cost": 0.0, "cached": True}
             return out
         if not self.budget.allow() or (self.shared is not None and not await self.shared.budget_allow(ctx.tenant_id)):
@@ -191,7 +209,9 @@ class JevSelector:
                 if resp.status_code == 200:
                     try:
                         body = resp.json()
-                        out = parse_response(body, elig)
+                        out = parse_response(body, elig, model=self.model,
+                            signal_names={k.removeprefix(SIGNAL_PREFIX) for k in payload['questions']
+                                          if k.startswith(SIGNAL_PREFIX)})
                     except ValueError as e:
                         self.breaker.record(False)
                         raise SelectorInvalidResponse(str(e)) from e

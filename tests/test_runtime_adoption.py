@@ -2,8 +2,8 @@ import asyncio
 from types import SimpleNamespace
 
 import pytest
-from decissions.decisions.feedback import submit_feedback, review_feedback
-from decissions.decisions.models import DecisionContext
+from decissions.contracts.feedback import submit_feedback, review_feedback
+from decissions.contracts.models import DecisionContext
 from decissions.presentations import PresentationService, ProfileInput, ResultRef, Intent
 from decissions.presentations.saved import compile_saved, SavedPresentationConflict
 from decissions.presentations.validation import validate_snapshot
@@ -31,16 +31,11 @@ class Store:
         return self.saved.setdefault((record.tenant_id,record.input_hash),record)
 
 
-class Adapter:
-    def __init__(self): self.engine=Engine(Settings(_env_file=None,rules_only=True),Store(),{SelectorKind.RULES:RulesSelector()})
-    async def decide(self,domain,**kwargs):
-        kwargs['input']=domain.input_model.model_validate(kwargs['input'])
-        return await self.engine.decide(domain,DecisionContext(domain=domain.name,**kwargs))
 
 
 def test_runtime_replay_and_tenant_separation():
     async def run():
-        service=PresentationService(engine=Adapter())
+        service=PresentationService(engine=Engine(Settings(_env_file=None,rules_only=True),Store()))
         async def select(tenant):
             return await service.present(request_id="req",tenant_id=tenant,reference=reference(),data=data())
         first=await select("a"); repeat=await select("a"); other=await select("b")

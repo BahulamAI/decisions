@@ -1,14 +1,14 @@
 """The single seam every decision maker plugs into. Selectors are domain-agnostic: they ask the
-domain for options, facts and rules, so one Jev adapter serves every EntityBI decision point."""
+domain for options, facts and rules, so one Jev adapter serves every candidate-selection domain."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from decissions.decisions.models import DecisionContext, Eligibility, FallbackReason, SelectorOutput
+from decissions.contracts.models import DecisionContext, Eligibility, FallbackReason, SelectorOutput
 
 if TYPE_CHECKING:
-    from decissions.decisions.domain import DecisionDomain
+    from decissions.contracts.domain import DecisionDomain
 
 
 class SelectorError(Exception):

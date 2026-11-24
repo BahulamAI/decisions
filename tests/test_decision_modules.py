@@ -7,8 +7,20 @@ from dataclasses import replace
 import httpx
 import pytest
 from pydantic import BaseModel
-from decissions.decisions import DecisionDomain,DecisionEngine,Eligibility,Option,SelectorOutput,SubjectRef
-from decissions.adapters.jev_decision import JevDecisionSelector
+from decissions.contracts import DecisionDomain,Eligibility,Option,SelectorOutput,SubjectRef
+from decissions.runtime.core.engine import Engine
+from decissions.runtime.config import Settings, DomainPolicy, SelectorKind
+from decissions.runtime.selectors.jev import JevSelector, FIT_ID
+
+
+def engine(selector=None, timeout_seconds=2):
+    return Engine(settings=Settings(_env_file=None,
+        serving_selector=SelectorKind.HOSTED if selector else SelectorKind.RULES,
+        external_inference_tenants=['one', 't'],
+        domain_policies={'presentation.select': DomainPolicy(on_selector_failure='safe_default',
+            min_fit_probability=.5, min_auto_confidence=0,
+            selector_deadline_ms=max(1, int(timeout_seconds * 1000)))}),
+        selectors={SelectorKind.HOSTED: selector} if selector else {})
 from decissions.presentations import PresentationService,ProfileInput,FieldSpec,ResultRef,Intent
 from decissions.presentations.contract import ChartKind
 from decissions.renderers.workplane.adapter import WorkplaneRenderer
@@ -63,7 +75,7 @@ class SlowSelector(BrokenSelector):
 
 @pytest.mark.parametrize('selector,reason',[(BrokenSelector(),'provider_error'),(WrongSelector(),'invalid_response'),(SlowSelector(),'timeout')])
 def test_provider_failures_return_exact_table(selector,reason):
-    result=present(service=PresentationService(engine=DecisionEngine(selector=selector,timeout_seconds=.01)))
+    result=present(service=PresentationService(engine=engine(selector=selector,timeout_seconds=.01)))
     assert result.decision.fallback_reason==reason
     assert result.decision.option.group=='detail_table'
     assert 'provider secret' not in result.decision.model_dump_json()
@@ -111,14 +123,14 @@ def test_core_is_domain_neutral_and_tenant_scoped():
             return Eligibility([Option(option_id=n,group=n,description={'what':n}) for n in ('small','large')],[],'small')
         def rules_select(self,ctx,elig):return 'large' if ctx.input.large else 'small'
     async def run(tenant):
-        return await DecisionEngine().decide(Routing(),request_id='req',tenant_id=tenant,
+        return await engine().decide(Routing(),request_id='req',tenant_id=tenant,
             subject=SubjectRef(kind='request',id='one'),input={'large':True})
     one,two=asyncio.run(run('one')),asyncio.run(run('two'))
     assert one.option_id=='large' and one.input_hash!=two.input_hash
 
 
 def test_assessment_import_does_not_load_optional_decision_modules():
-    subprocess.run([sys.executable,'-c',"import decissions,sys; assert 'decissions.decisions' not in sys.modules; assert 'decissions.presentations' not in sys.modules"],check=True)
+    subprocess.run([sys.executable,'-c',"import decissions,sys; assert 'decissions.contracts' not in sys.modules; assert 'decissions.presentations' not in sys.modules"],check=True)
 
 
 def test_jev_receives_profile_and_choices_but_no_rows_or_labels():
@@ -128,11 +140,11 @@ def test_jev_receives_profile_and_choices_but_no_rows_or_labels():
         ids=list(body['questions']['choice']['criteria'])
         return httpx.Response(200,json={'model':'configured-jev','answers':{
             'choice':{'type':'choice','choice':ids[0],'probabilities':{x:1 if x==ids[0] else 0 for x in ids}},
-            'fit':{'type':'noul','noul':.9}}})
+            FIT_ID:{'type':'noul','noul':.9}}})
     async def run():
         async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
-            selector=JevDecisionSelector(api_key='test-key',model='configured-jev',endpoint='http://gateway.test/decisions',client=client)
-            return await PresentationService(engine=DecisionEngine(selector=selector)).present(
+            selector=JevSelector(api_key='test-key',model='configured-jev',url='http://gateway.test/decisions',client=client,include_signals=False)
+            return await PresentationService(engine=engine(selector=selector)).present(
                 request_id='r',tenant_id='t',reference=ref(),data=data(),intent=Intent(text='compare categories'))
     result=asyncio.run(run())
     assert result.decision.selection_source=='hosted_model'
@@ -151,5 +163,5 @@ def test_nonfinite_provider_probabilities_cannot_be_served():
     class BadNumbers(BrokenSelector):
         async def select(self,domain,ctx,elig,budget):
             return {'option_id':elig.options[0].option_id,'provider_confidence':float('nan')}
-    result=present(service=PresentationService(engine=DecisionEngine(selector=BadNumbers())))
+    result=present(service=PresentationService(engine=engine(selector=BadNumbers())))
     assert result.decision.selection_source=='fallback'

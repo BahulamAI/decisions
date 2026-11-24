@@ -1,20 +1,53 @@
 # Decissions
 
-Reusable, isolated modules for safety assessment and chart decisions. The local repository directory is
-`decissions`; the installable distribution is `decissions` and imports use
-`decissions`. There is no legacy import facade. Backend adoption is a separate change.
+One Python package runtime for chat safety, chart rendering, text classification, and additional
+policy-selected decision handlers. Install with `pip install '.[api,presentations]'`.
+The current alpha version is `0.3.0a1` (Python 3.10+).
 
-| Use case | Module | Status |
-|---|---|---|
-| Safety assessment and application policy | `decissions.assessment`, `engine`, `session` | Existing functionality preserved |
-| Generic decision contracts and selection | `decissions.decisions` | Extracted domain interfaces and bounded in-process engine |
-| Chart profiling and eligibility | `decissions.presentations` | Implemented; rules or optional Jev selection |
-| Workplane rendering contract | `decissions.renderers.workplane` | First isolated compiler adapter |
-| Model/tool selection and PII detection | Future domain integrations | Not implemented by this change |
+```python
+from decissions import Runtime, DecisionPolicy, PresentationHandler
 
-See [module architecture and chart quick start](docs/decision-platform.md).
-Install chart support with `pip install '.[presentations]'`, hosted selection with
-`pip install '.[presentations,jev]'`, or test dependencies with `pip install '.[dev]'`.
+runtime = Runtime(
+    policies=[DecisionPolicy(id="chart", version="1", handler="charts")],
+    handlers={"charts": PresentationHandler()},
+)
+
+# All capabilities use this call and the same response envelope.
+response = await runtime.decide(
+    policy="chart", policy_version="1", request_id="chart-1", tenant_id="tenant-1",
+    input={
+        "reference": result_reference,
+        "data": {"fields": fields, "rows": rows, "is_complete": True, "total_rows": len(rows)},
+        "intent": {"text": "Compare orders by region"},
+    },
+)
+```
+
+The variables above are application-supplied, authorized data. Runnable offline examples:
+
+```bash
+PYTHONPATH=src python examples/unified.py
+PYTHONPATH=src python examples/sql_classification.py
+```
+
+| Capability | Installed handler | Input | Result fields |
+|---|---|---|---|
+| Chat safety policy | `SafetyHandler(existing_gate)` | Content, stage, actor and optional session context | Existing recommended/effective actions and signals |
+| Risk evidence | `RiskAssessmentHandler(existing_assessor)` | Content and optional family/session selection | Family/subfamily probabilities and provenance |
+| Chart rendering | `PresentationHandler()` | Result reference, fields/rows, intent | Decision receipt, rendering and rendering status |
+| Text classification | `ClassificationHandler(...)` | Text, including a column fetched with SQL | Label or abstention, probabilities and receipt |
+
+A versioned `DecisionPolicy` selects the handler, tenant admission, deadline and selection overrides.
+The application registers implementations and credentials at startup; requests only name a policy and
+its version. `decide_many([...])` accepts the same requests, preserves order and limits concurrency.
+See [the common API, configuration and migration guide](docs/decision-platform.md).
+
+**There is one runtime and one candidate-selection implementation.** The old
+`decissions.decisions.engine.DecisionEngine` and `JevDecisionSelector` were removed without aliases.
+Shared contracts now live in `decissions.contracts`. The existing safety API is retained unchanged,
+including dependency-free `import decissions`; the new runtime imports are lazy.
+Existing safety integrations can adopt the common entry point without replacing their policies,
+evaluators, session logic or hard rules. Consumer deployment remains the host application's work.
 
 ## Safety assessment API
 
@@ -24,7 +57,7 @@ Give the safety assessment module your content, conversation context, and risk d
 
 **The primary API returns evidence, not permission to act.** It does not run tools, modify prompts, rewrite responses, block messages, or store conversations. Those controls belong to the application.
 
-The package is alpha (`0.2.0a0`) and requires Python 3.10 or later. Its example criteria and thresholds are synthetic; they are not a calibrated production policy.
+The package is alpha (`0.3.0a1`) and requires Python 3.10 or later. Its example criteria and thresholds are synthetic; they are not a calibrated production policy.
 
 ## Install
 
