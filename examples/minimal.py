@@ -2,7 +2,7 @@
 
 import asyncio
 
-from chat_safety import (
+from decissions import (
     Action, Category, Evaluation, Mode, PolicyBundle, SafetyGate, SafetyInput,
     Signal, Stage, ThresholdBand,
 )

@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from chat_safety.eval_cli import main
+from decissions.eval_cli import main
 
 
 ROOT = Path(__file__).resolve().parents[1]

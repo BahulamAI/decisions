@@ -4,12 +4,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from chat_safety import (
+from decissions import (
     Action, AssessmentScope, Category, Evaluation, SafetyGate, SafetyInput,
     Signal, Stage, load_policy_json, parse_policy_config,
 )
-from chat_safety.adapters.jev import JevEvaluator
-from chat_safety.eval_cli import _load_policy
+from decissions.adapters.jev import JevEvaluator
+from decissions.eval_cli import _load_policy
 
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples/runtime-policy.json"

@@ -1,0 +1,77 @@
+{
+  "source_repository": "/Users/sree/Downloads/entitybi-decision-service",
+  "source_commit": "1b819d236daec2a7f8534adb9f4b25b35d7bb880",
+  "note": "Extracted from the current working tree, including uncommitted work. Source repository retained unchanged. Consumers have not been cut over.",
+  "files": [
+    {
+      "source": "src/decision_service/core/models.py",
+      "destination": "src/decissions/decisions/models.py",
+      "source_sha256": "caa095b9b4e016725c3bcd2349ff4313739ecb529c1c0c18c1a2922c79cad9c9"
+    },
+    {
+      "source": "src/decision_service/core/domain.py",
+      "destination": "src/decissions/decisions/domain.py",
+      "source_sha256": "3a74c2cdc636089f36dddb6bdd42025f03bd8f5e1f45886658a3ee2f7fdd0f28"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/contract.py",
+      "destination": "src/decissions/presentations/contract.py",
+      "source_sha256": "5538112789f9af65ffa4f37361b222f8bbeb3e34f6e8efc4f95dfe8d59cd628a"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/profile.py",
+      "destination": "src/decissions/presentations/profile.py",
+      "source_sha256": "a1d3f37479ae15d192229c9180b1b8acdd04fb90d9d79c4f2e57893d6147384c"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/policy.py",
+      "destination": "src/decissions/presentations/policy.py",
+      "source_sha256": "b717f847688ff4b7bbb90e50b388189b0f79efa0dffe90a224f3475c12f2915f"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/guards.py",
+      "destination": "src/decissions/presentations/guards.py",
+      "source_sha256": "fbd4089ba97c5eb36af3ca062ef34d23a4738b8ee8e2227b5eca6a0df1c69a2c"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/catalog_loader.py",
+      "destination": "src/decissions/presentations/catalog_loader.py",
+      "source_sha256": "16a9cfb2e35fd36c77ced9eb8834458e13424872c2bf23a9934bb664e05ebd91"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/relations.py",
+      "destination": "src/decissions/presentations/relations.py",
+      "source_sha256": "feea21dc7128bbf55002a1e5bc3e41cafb3abf1a8ced318bb6c62c01c4e666ab"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/intent.py",
+      "destination": "src/decissions/presentations/intent.py",
+      "source_sha256": "9714371bbb5a96b8d4454c861bbcc75196462082ae0195644f8cd8ec8f15d029"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/domain.py",
+      "destination": "src/decissions/presentations/domain.py",
+      "source_sha256": "5625b2cad56854d3ea357ea2bf10b1b746fbdbd7ac3dbc670a6523cc701520e6"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/compiler.py",
+      "destination": "src/decissions/renderers/workplane/compiler.py",
+      "source_sha256": "a700f5b4fd4d08071d10592896e88e6f25df666be092b28a8a5e054f6fdf1aba"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/chat_chart.py",
+      "destination": "src/decissions/renderers/workplane/chat_chart.py",
+      "source_sha256": "c28f8459e51e484a4ed54377e23d7758d37379ac0561130fb0df4c158722b518"
+    },
+    {
+      "source": "src/decision_service/domains/presentation/catalog/chart_types.json",
+      "destination": "src/decissions/presentations/catalog/chart_types.json",
+      "source_sha256": "4da0cce948da2c2f80fc03d1014b6d496fbdecd25eb77a2c058a7b53197c47d7"
+    },
+    {
+      "source": "src/decision_service/contracts/chat-chart-v1.json",
+      "destination": "src/decissions/renderers/workplane/contracts/chat-chart-v1.json",
+      "source_sha256": "b8000823dcfaf6eed53e73665f481cca497216ed20fc229f5c30ac4fb1487631"
+    }
+  ]
+}

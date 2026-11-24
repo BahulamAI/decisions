@@ -1,20 +1,71 @@
-# chat-safety
+# Decissions
+
+One Python package runtime for chat safety, chart rendering, text classification, and additional
+policy-selected decision handlers. Install with `pip install '.[api,presentations]'`.
+The current alpha version is `0.3.0a1` (Python 3.10+).
+
+```python
+from decissions import Runtime, DecisionPolicy, PresentationHandler
+
+runtime = Runtime(
+    policies=[DecisionPolicy(id="chart", version="1", handler="charts")],
+    handlers={"charts": PresentationHandler()},
+)
+
+# All capabilities use this call and the same response envelope.
+response = await runtime.decide(
+    policy="chart", policy_version="1", request_id="chart-1", tenant_id="tenant-1",
+    input={
+        "reference": result_reference,
+        "data": {"fields": fields, "rows": rows, "is_complete": True, "total_rows": len(rows)},
+        "intent": {"text": "Compare orders by region"},
+    },
+)
+```
+
+The variables above are application-supplied, authorized data. Runnable offline examples:
+
+```bash
+PYTHONPATH=src python examples/unified.py
+PYTHONPATH=src python examples/sql_classification.py
+```
+
+| Capability | Installed handler | Input | Result fields |
+|---|---|---|---|
+| Chat safety policy | `SafetyHandler(existing_gate)` | Content, stage, actor and optional session context | Existing recommended/effective actions and signals |
+| Risk evidence | `RiskAssessmentHandler(existing_assessor)` | Content and optional family/session selection | Family/subfamily probabilities and provenance |
+| Chart rendering | `PresentationHandler()` | Result reference, fields/rows, intent | Decision receipt, rendering and rendering status |
+| Text classification | `ClassificationHandler(...)` | Text, including a column fetched with SQL | Label or abstention, probabilities and receipt |
+
+A versioned `DecisionPolicy` selects the handler, tenant admission, deadline and selection overrides.
+The application registers implementations and credentials at startup; requests only name a policy and
+its version. `decide_many([...])` accepts the same requests, preserves order and limits concurrency.
+See [the common API, configuration and migration guide](docs/decision-platform.md).
+
+**There is one runtime and one candidate-selection implementation.** The old
+`decissions.decisions.engine.DecisionEngine` and `JevDecisionSelector` were removed without aliases.
+Shared contracts now live in `decissions.contracts`. The existing safety API is retained unchanged,
+including dependency-free `import decissions`; the new runtime imports are lazy.
+Existing safety integrations can adopt the common entry point without replacing their policies,
+evaluators, session logic or hard rules. Consumer deployment remains the host application's work.
+
+## Safety assessment API
 
 Typed, provider-neutral risk assessments for conversational applications.
 
-Give `chat-safety` your content, conversation context, and risk definitions. It returns structured scores for risk families and subfamilies, assessed at message or session scope. Your application decides how to use that evidence: guide an agent, request more detail, review a tool action, or assess a draft before releasing it.
+Give the safety assessment module your content, conversation context, and risk definitions. It returns structured scores for risk families and subfamilies, assessed at message or session scope. Your application decides how to use that evidence: guide an agent, request more detail, review a tool action, or assess a draft before releasing it.
 
 **The primary API returns evidence, not permission to act.** It does not run tools, modify prompts, rewrite responses, block messages, or store conversations. Those controls belong to the application.
 
-The package is alpha (`0.1.0a0`) and requires Python 3.10 or later. Its example criteria and thresholds are synthetic; they are not a calibrated production policy.
+The package is alpha (`0.3.0a1`) and requires Python 3.10 or later. Its example criteria and thresholds are synthetic; they are not a calibrated production policy.
 
 ## Install
 
 Install from a source checkout:
 
 ```bash
-git clone https://github.com/BahulamAI/chat-safety.git
-cd chat-safety
+git clone https://github.com/BahulamAI/decisions.git decissions
+cd decissions
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[jev]'
@@ -58,7 +109,7 @@ import asyncio
 import json
 import os
 
-from chat_safety import (
+from decissions import (
     AssessmentInput,
     AssessmentScope,
     AssessmentStatus,
@@ -67,7 +118,7 @@ from chat_safety import (
     Stage,
     load_risk_registry,
 )
-from chat_safety.adapters.jev_risk import JevRiskEvaluator
+from decissions.adapters.jev_risk import JevRiskEvaluator
 
 
 async def main():
@@ -116,7 +167,7 @@ The registry uses schema `chat-safety.risks/1` and contains:
 - `version`: the caller's version identifier for the definition set.
 - `reporting.top_k_families`: a positive integer, defaulting to `3`.
 - `families`: a map of family IDs to descriptions, questions, and optional subfamilies.
-- `limits`: optional context bounds; see [ContextLimits](src/chat_safety/context.py).
+- `limits`: optional context bounds; see [ContextLimits](src/decissions/context.py).
 
 Every family and subfamily requires both `message` and `session` questions. Each question has `instructions`, `true_criteria`, and `false_criteria`. For example, a question can distinguish unapproved disclosure from authorized handling or redaction. Family and subfamily IDs must match `[a-z][a-z0-9_]{0,63}`. New IDs do not require a package release.
 
@@ -237,7 +288,7 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 PYTHONPATH=src python examples/family_nudge.py
 PYTHONPATH=src python examples/minimal.py
 PYTHONPATH=src python examples/caller_session.py
-PYTHONPATH=src python -m chat_safety.eval_cli \
+PYTHONPATH=src python -m decissions.eval_cli \
   --policy examples/synthetic-policy.json \
   --cases examples/synthetic-cases.jsonl \
   --list-decisions --fail-on-mismatch
@@ -260,15 +311,15 @@ For application evaluation, keep a labeled corpus covering benign research, ambi
 
 | Module | Responsibility |
 | --- | --- |
-| [assessment.py](src/chat_safety/assessment.py) | Evidence contracts, validation, family and subfamily assessment |
-| [registry.py](src/chat_safety/registry.py) | Strict JSON registry loader |
-| [adapters/jev_risk.py](src/chat_safety/adapters/jev_risk.py) | Jev adapter for the family API |
-| [context.py](src/chat_safety/context.py) | Context bounds |
-| [questions.py](src/chat_safety/questions.py) | Provider-neutral binary criteria |
-| [models.py](src/chat_safety/models.py) | Stages, scopes, and legacy action contracts |
-| [config.py](src/chat_safety/config.py), [policy.py](src/chat_safety/policy.py), [engine.py](src/chat_safety/engine.py) | Legacy policy loading and action composition |
-| [session.py](src/chat_safety/session.py) | Legacy session state and storage interface |
-| [evaluation.py](src/chat_safety/evaluation.py) | Legacy offline evaluation metrics |
+| [assessment.py](src/decissions/assessment.py) | Evidence contracts, validation, family and subfamily assessment |
+| [registry.py](src/decissions/registry.py) | Strict JSON registry loader |
+| [adapters/jev_risk.py](src/decissions/adapters/jev_risk.py) | Jev adapter for the family API |
+| [context.py](src/decissions/context.py) | Context bounds |
+| [questions.py](src/decissions/questions.py) | Provider-neutral binary criteria |
+| [models.py](src/decissions/models.py) | Stages, scopes, and legacy action contracts |
+| [config.py](src/decissions/config.py), [policy.py](src/decissions/policy.py), [engine.py](src/decissions/engine.py) | Legacy policy loading and action composition |
+| [session.py](src/decissions/session.py) | Legacy session state and storage interface |
+| [evaluation.py](src/decissions/evaluation.py) | Legacy offline evaluation metrics |
 
 ## Contributing
 

@@ -1,7 +1,7 @@
 import unittest
 import json
 
-from chat_safety import (
+from decissions import (
     Action, AssessmentScope, Category, Evaluation, EventOutcome, Mode,
     PolicyBundle, RiskTier, SafetyDecision, SafetyGate, ScannerStatus, Signal,
     SessionConflict, SessionEvent, SessionSafetyState, SessionTracker, Stage,

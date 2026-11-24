@@ -35,7 +35,7 @@ async def _post_decisions(*, endpoint, body, api_key, timeout_seconds, max_respo
     try:
         import httpx
     except ImportError as exc:
-        raise RuntimeError("install chat-safety[jev] for the Jev adapter") from exc
+        raise RuntimeError("install decision-platform[jev] for the Jev adapter") from exc
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     if client is None:
         async with httpx.AsyncClient(timeout=timeout_seconds) as owned_client:

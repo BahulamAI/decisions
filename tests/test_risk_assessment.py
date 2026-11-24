@@ -6,11 +6,11 @@ import unittest
 
 import httpx
 
-from chat_safety import (
+from decissions import (
     AssessmentInput, AssessmentScope, AssessmentStatus, ContextTooLarge, RecentTurn,
     RiskAssessor, RiskEvaluation, RiskScore, Stage, load_risk_registry, parse_risk_registry,
 )
-from chat_safety.adapters.jev_risk import JevRiskEvaluator
+from decissions.adapters.jev_risk import JevRiskEvaluator
 
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples/risk-registry.json"

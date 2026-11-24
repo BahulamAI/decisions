@@ -1,0 +1,2700 @@
+{
+  "catalog_version": "presentation-catalog/3",
+  "contract_sha256": "b8000823dcfaf6eed53e73665f481cca497216ed20fc229f5c30ac4fb1487631",
+  "chart_types": [
+    {
+      "chart_type": "bar",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": true,
+      "what": "Bars comparing one value across categories",
+      "best_for": "Comparing a count or total across a bounded set of categories",
+      "not_for": "Trends over time, or shares of a whole",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.echarts (verify-workplane)",
+      "rules_selectable": true
+    },
+    {
+      "chart_type": "horizontal_bar",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": "bar",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Bars laid out sideways so long names stay readable",
+      "best_for": "Comparing categories with long labels",
+      "not_for": "Time order or part-to-whole",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "lollipop",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": "bar",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A dot on a thin stem per category",
+      "best_for": "Comparing many categories with less ink than bars",
+      "not_for": "Several series at once",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "dumbbell",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "Two dots per category joined by a line",
+      "best_for": "Before and after, such as the last two runs",
+      "not_for": "More than two measurements",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "stacked_bar",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "ADDITIVE_NONNEGATIVE",
+        "COMPLETE_GRID"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Bars split into the parts that make them up",
+      "best_for": "Comparing totals and their parts across categories",
+      "not_for": "Parts that overlap",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "stacked_bar_100",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "PART_OF_WHOLE",
+        "MUTUALLY_EXCLUSIVE",
+        "ADDITIVE_NONNEGATIVE",
+        "COMPLETE_GRID"
+      ],
+      "variant_of": "stacked_bar",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Bars normalised to 100% and split into parts",
+      "best_for": "Comparing the mix of parts across categories",
+      "not_for": "Comparing totals",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "line",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "ORDERED_TIME",
+        "COMPARABLE_RUNS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": true,
+      "what": "A value across dated, comparable runs",
+      "best_for": "Change over time between comparable runs",
+      "not_for": "Comparing unrelated categories",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.echarts (verify-workplane)",
+      "rules_selectable": true
+    },
+    {
+      "chart_type": "area",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "ORDERED_TIME",
+        "COMPARABLE_RUNS"
+      ],
+      "variant_of": "line",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A line with the area beneath filled",
+      "best_for": "Emphasising the size of a value over time",
+      "not_for": "Values that can be negative",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "step_line",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "ORDERED_TIME",
+        "COMPARABLE_RUNS"
+      ],
+      "variant_of": "line",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A line that changes in steps",
+      "best_for": "Values that change at discrete moments",
+      "not_for": "Smoothly varying measures",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "range_area",
+      "family": "interval",
+      "shape": "interval",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "A band from a low to a high value over time",
+      "best_for": "Ranges or uncertainty around a trend",
+      "not_for": "Single values",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "error_bar",
+      "family": "interval",
+      "shape": "interval",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "A value with its uncertainty range",
+      "best_for": "Estimates with known uncertainty",
+      "not_for": "Exact counts",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "stacked_area",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "ORDERED_TIME",
+        "COMPARABLE_RUNS",
+        "ADDITIVE_NONNEGATIVE",
+        "COMPLETE_GRID"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Areas stacked to show how parts build a total over time",
+      "best_for": "How the parts of a total change over time",
+      "not_for": "Parts that overlap",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "stacked_area_100",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "PART_OF_WHOLE",
+        "MUTUALLY_EXCLUSIVE",
+        "ORDERED_TIME",
+        "COMPARABLE_RUNS",
+        "ADDITIVE_NONNEGATIVE",
+        "COMPLETE_GRID"
+      ],
+      "variant_of": "stacked_area",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Stacked areas normalised to 100%",
+      "best_for": "How the mix changes over time",
+      "not_for": "Comparing totals",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "sparkline",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "ORDERED_TIME",
+        "COMPARABLE_RUNS",
+        "SINGLE_SERIES"
+      ],
+      "variant_of": "line",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A tiny trend line with no axes",
+      "best_for": "A glance at direction next to a number",
+      "not_for": "Reading exact values",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "pie",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "PART_OF_WHOLE",
+        "MUTUALLY_EXCLUSIVE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": true,
+      "what": "Slices showing each category's share of a complete total",
+      "best_for": "Part-to-whole over a few complete, non-overlapping categories",
+      "not_for": "Scores, partial lists, precise comparison",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.echarts (verify-workplane)",
+      "rules_selectable": true
+    },
+    {
+      "chart_type": "donut",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "PART_OF_WHOLE",
+        "MUTUALLY_EXCLUSIVE"
+      ],
+      "variant_of": "pie",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A pie with a hollow centre",
+      "best_for": "The same part-to-whole questions as a pie",
+      "not_for": "Scores, partial lists, precise comparison",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "rose",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": true,
+      "enabled": false,
+      "selectable": false,
+      "what": "Slices whose radius also grows with value",
+      "best_for": "Not enabled in this initial catalog; radial area can exaggerate differences",
+      "not_for": "Any precise reading",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "pareto",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "ADDITIVE_NONNEGATIVE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Sorted bars with a cumulative percentage line",
+      "best_for": "Finding the few categories that make up most of a total",
+      "not_for": "Values that do not add up",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "waterfall",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "A running total built from signed steps",
+      "best_for": "Explaining how a total moved between two states",
+      "not_for": "Unordered categories",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "funnel",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "Stages narrowing in a declared order",
+      "best_for": "Counts that genuinely drop stage by stage",
+      "not_for": "Unordered or independent categories",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "pyramid",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": "funnel",
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "Stages widening in a declared order",
+      "best_for": "Counts that genuinely grow stage by stage",
+      "not_for": "Unordered or independent categories",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "waffle",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "PART_OF_WHOLE",
+        "MUTUALLY_EXCLUSIVE"
+      ],
+      "variant_of": "pie",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A 10 by 10 grid, one square per percent",
+      "best_for": "Communicating simple shares to a general audience",
+      "not_for": "Many categories or precise values",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "scatter",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "Points placed by two measures",
+      "best_for": "How two measures relate across assets",
+      "not_for": "Categories without a second measure",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "bubble",
+      "family": "multi",
+      "shape": "bubble",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "A scatter with point size as a third measure",
+      "best_for": "Relating two measures with a third as weight",
+      "not_for": "Precise reading of the third measure",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "scatter_trend",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": "scatter",
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "A scatter with a straight trend line",
+      "best_for": "Showing an overall relationship between two measures",
+      "not_for": "Claims of cause",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "histogram",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "How many values fall in each range",
+      "best_for": "The spread of raw scores",
+      "not_for": "Pre-aggregated totals",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "box_plot",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Median, quartiles and extremes of each group",
+      "best_for": "Comparing spreads between groups",
+      "not_for": "Small samples or totals",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "density",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A smoothed outline of a distribution",
+      "best_for": "The shape of a large sample",
+      "not_for": "Small samples",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "ecdf",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "The share of values at or below each value",
+      "best_for": "Reading thresholds such as 'how many score under 40'",
+      "not_for": "Audiences unfamiliar with it",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "strip_plot",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Every value as a point along a line",
+      "best_for": "Small samples where each value matters",
+      "not_for": "Very large samples",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "beeswarm",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": "strip_plot",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Every value as a point, spread to avoid overlap",
+      "best_for": "Small samples with clusters",
+      "not_for": "Very large samples",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "scatter_matrix",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "Every pair of up to six measures as small scatters",
+      "best_for": "Exploring how several measures relate",
+      "not_for": "A quick answer",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "correlation_matrix",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "How strongly each pair of measures moves together",
+      "best_for": "Spotting related measures",
+      "not_for": "Claims of cause",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "parallel_coordinates",
+      "family": "sample",
+      "shape": "samples",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE",
+        "RAW_OBSERVATIONS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "Each asset as a line across several measures",
+      "best_for": "Comparing profiles across many measures",
+      "not_for": "Small audiences or a quick answer",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "radar",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": true,
+      "enabled": false,
+      "selectable": false,
+      "what": "Profiles drawn across shared indicators",
+      "best_for": "Little here; shapes are easy to misread",
+      "not_for": "Any precise comparison",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "polar_bar",
+      "family": "point",
+      "shape": "label_value",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": true,
+      "enabled": false,
+      "selectable": false,
+      "what": "Bars arranged around a circle",
+      "best_for": "Cyclic categories such as hours",
+      "not_for": "Ordinary comparisons",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "gauge",
+      "family": "target",
+      "shape": "target",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": true,
+      "enabled": false,
+      "selectable": false,
+      "what": "A dial for one value against a range",
+      "best_for": "Dashboards; decorative here",
+      "not_for": "Rationalization answers",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "bullet",
+      "family": "target",
+      "shape": "target",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "A value against a target and quality bands",
+      "best_for": "Progress against an agreed target",
+      "not_for": "Values with no target",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "progress",
+      "family": "target",
+      "shape": "target",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "A filled bar towards a maximum",
+      "best_for": "Simple progress such as task completion",
+      "not_for": "Values without a natural maximum",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "heatmap",
+      "family": "heatmap",
+      "shape": "cells",
+      "guards": [
+        "NO_NULL_MEASURE",
+        "UNIQUE_CATEGORIES"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A coloured grid over two categories",
+      "best_for": "Counts across two categories, such as platform by score class",
+      "not_for": "Exact comparison",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "calendar_heatmap",
+      "family": "heatmap",
+      "shape": "label_value",
+      "guards": [
+        "NO_NULL_MEASURE",
+        "UNIQUE_CATEGORIES"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": false,
+      "selectable": false,
+      "what": "One coloured cell per day on a calendar",
+      "best_for": "Activity per day over months",
+      "not_for": "Anything not daily",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "candlestick",
+      "family": "other",
+      "shape": "ohlc",
+      "guards": [],
+      "variant_of": null,
+      "never": true,
+      "enabled": false,
+      "selectable": false,
+      "what": "Open, high, low and close per period",
+      "best_for": "Market data",
+      "not_for": "Rationalization data",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "drawdown",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": true,
+      "enabled": false,
+      "selectable": false,
+      "what": "Decline from a running peak",
+      "best_for": "Financial series",
+      "not_for": "Rationalization data",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "cumulative_return",
+      "family": "multi",
+      "shape": "series",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": true,
+      "enabled": false,
+      "selectable": false,
+      "what": "Compounded growth from periodic returns",
+      "best_for": "Financial series",
+      "not_for": "Rationalization data",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "gantt",
+      "family": "interval",
+      "shape": "tasks",
+      "guards": [
+        "SINGLE_UNIT",
+        "NO_NULL_MEASURE"
+      ],
+      "variant_of": null,
+      "never": true,
+      "enabled": false,
+      "selectable": false,
+      "what": "Tasks as bars on a timeline",
+      "best_for": "Schedules",
+      "not_for": "Rationalization data",
+      "disclosures": [],
+      "verified_with": null,
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "treemap",
+      "family": "hierarchy",
+      "shape": "hierarchy",
+      "guards": [
+        "NO_NULL_MEASURE",
+        "ADDITIVE_NONNEGATIVE",
+        "MEMBERSHIP_LINKS",
+        "DISJOINT_GROUPS",
+        "ACYCLIC",
+        "PART_OF_WHOLE",
+        "MUTUALLY_EXCLUSIVE"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Nested rectangles sized by value",
+      "best_for": "Sizes of disjoint groups and their members",
+      "not_for": "Overlapping groups",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "sunburst",
+      "family": "hierarchy",
+      "shape": "hierarchy",
+      "guards": [
+        "NO_NULL_MEASURE",
+        "ADDITIVE_NONNEGATIVE",
+        "MEMBERSHIP_LINKS",
+        "DISJOINT_GROUPS",
+        "ACYCLIC",
+        "PART_OF_WHOLE",
+        "MUTUALLY_EXCLUSIVE"
+      ],
+      "variant_of": "treemap",
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Nested rings sized by value",
+      "best_for": "The same questions as a treemap, radially",
+      "not_for": "Overlapping groups",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "tree",
+      "family": "hierarchy",
+      "shape": "hierarchy",
+      "guards": [
+        "NO_NULL_MEASURE",
+        "ADDITIVE_NONNEGATIVE",
+        "MEMBERSHIP_LINKS",
+        "DISJOINT_GROUPS",
+        "ACYCLIC",
+        "SINGLE_ROOT"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "A rooted node-link tree",
+      "best_for": "One clear hierarchy",
+      "not_for": "Several roots or networks",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "sankey",
+      "family": "graph",
+      "shape": "network",
+      "guards": [
+        "SIMILARITY_NOT_FLOW",
+        "ACYCLIC",
+        "NO_NULL_MEASURE",
+        "ADDITIVE_NONNEGATIVE",
+        "NO_SELF_LINKS",
+        "UNIQUE_LINKS",
+        "MAX_NODES",
+        "MAX_LINKS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Flows between stages, widths sized by quantity",
+      "best_for": "Real quantities moving between stages",
+      "not_for": "Similarity, which is not a flow",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    },
+    {
+      "chart_type": "graph",
+      "family": "graph",
+      "shape": "network",
+      "guards": [
+        "NO_SELF_LINKS",
+        "UNIQUE_LINKS",
+        "MAX_NODES",
+        "MAX_LINKS"
+      ],
+      "variant_of": null,
+      "never": false,
+      "enabled": true,
+      "selectable": false,
+      "what": "Nodes and typed links",
+      "best_for": "Relationships such as similarity or dependency",
+      "not_for": "Quantities or flows",
+      "disclosures": [],
+      "verified_with": "@bahulam/workplane-ui@0.1.5 workplane.chat-chart/1 (verify-workplane)",
+      "rules_selectable": false
+    }
+  ],
+  "templates": [
+    {
+      "template_id": "category_metric_bar",
+      "version": 1,
+      "chart_type": "bar",
+      "kind": "bar",
+      "prefix": "BAR",
+      "candidate_id": "{dimension}_{measure}_bar_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "BAR_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "BAR_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 20
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "y": "measure"
+      },
+      "ordering": "value_desc",
+      "description": {
+        "what": "Bar chart of {measure_words} for each {dimension_words}, sorted largest first",
+        "best_for": "Comparing a metric across a bounded set of categories",
+        "not_for": "Trends over time or shares of a whole"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "category_metric_top_n_bar",
+      "version": 1,
+      "chart_type": "bar",
+      "kind": "bar",
+      "prefix": "BAR",
+      "candidate_id": "{dimension}_{measure}_top{top_n}_bar_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "BAR_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "BAR_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES"
+        },
+        {
+          "name": "MORE_CATEGORIES_THAN",
+          "min": 20,
+          "code": "TOP_N_UNNEEDED_FULL_BAR_FITS"
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "y": "measure"
+      },
+      "ordering": "value_desc",
+      "top_n": 10,
+      "description": {
+        "what": "Top {top_n} {dimension_words} by {measure_words}; {omitted} more are not charted",
+        "best_for": "Highlighting the largest categories when there are too many to chart",
+        "not_for": "Claims about the whole portfolio"
+      },
+      "disclosures": [
+        "TOP_N_OMITTED_ROWS:{omitted}",
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "category_share_pie",
+      "version": 1,
+      "chart_type": "pie",
+      "kind": "pie",
+      "prefix": "PIE",
+      "candidate_id": "{dimension}_{measure}_pie_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "PIE_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "PIE_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "PART_OF_WHOLE"
+        },
+        {
+          "name": "MUTUALLY_EXCLUSIVE"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 6
+        }
+      ],
+      "bindings": {
+        "category": "dimension",
+        "value": "measure"
+      },
+      "ordering": "value_desc",
+      "description": {
+        "what": "Share of total {measure_words} by {dimension_words} (complete, mutually exclusive)",
+        "best_for": "Part-to-whole questions over a complete, small set of categories",
+        "not_for": "Precise comparison, scores, partial lists"
+      },
+      "disclosures": [
+        "EXACT_VALUES_IN_TABLE"
+      ]
+    },
+    {
+      "template_id": "time_metric_line",
+      "version": 1,
+      "chart_type": "line",
+      "kind": "line",
+      "prefix": "LINE",
+      "candidate_id": "{time}_{measure}_line_v{version}",
+      "requires": [
+        {
+          "role": "time",
+          "missing": "LINE_NO_TIME_DIMENSION"
+        },
+        {
+          "role": "measure",
+          "missing": "LINE_NO_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ORDERED_TIME"
+        },
+        {
+          "name": "COMPARABLE_RUNS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 2,
+          "code": "{prefix}_NEEDS_TWO_POINTS"
+        },
+        {
+          "name": "SINGLE_SERIES"
+        }
+      ],
+      "bindings": {
+        "x": "time",
+        "y": "measure"
+      },
+      "ordering": "time_asc",
+      "description": {
+        "what": "{measure_words} across dated analysis runs ({time_words})",
+        "best_for": "Change over comparable, ordered runs",
+        "not_for": "Comparing unrelated categories"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "evidence_table",
+      "version": 1,
+      "chart_type": null,
+      "kind": "table",
+      "candidate_id": "evidence_table_v{version}",
+      "requires": [
+        {
+          "role": "identifier",
+          "missing": "EVIDENCE_TABLE_NEEDS_IDENTITY_AND_EVIDENCE"
+        },
+        {
+          "role": "evidence|status",
+          "missing": "EVIDENCE_TABLE_NEEDS_IDENTITY_AND_EVIDENCE"
+        }
+      ],
+      "bindings": {
+        "columns": "@all_fields"
+      },
+      "ordering": "missing_evidence_first",
+      "description": {
+        "what": "Asset-level table with recommendation status and evidence links",
+        "best_for": "Inspecting candidates and checking which lack evidence",
+        "not_for": "Seeing a pattern at a glance"
+      },
+      "disclosures": [
+        "RECOMMENDATIONS_REQUIRE_PRODUCT_REVIEW",
+        "@coverage"
+      ]
+    },
+    {
+      "template_id": "detail_table",
+      "version": 1,
+      "chart_type": null,
+      "kind": "table",
+      "candidate_id": "detail_table_v{version}",
+      "bindings": {
+        "columns": "@all_fields"
+      },
+      "description": {
+        "what": "Exact values in a sortable, accessible table",
+        "best_for": "Precise lookup, many rows, or when no chart is faithful",
+        "not_for": "Spotting patterns quickly"
+      },
+      "disclosures": [
+        "@coverage",
+        "@paginated"
+      ]
+    },
+    {
+      "template_id": "empty_state",
+      "version": 1,
+      "chart_type": null,
+      "kind": "text",
+      "empty_state": true,
+      "candidate_id": "empty_state_v{version}",
+      "description": {
+        "what": "This result has no rows for the current scope",
+        "best_for": "Empty results",
+        "not_for": "Anything with data"
+      },
+      "disclosures": [
+        "NO_ROWS_NO_INVENTED_SERIES"
+      ]
+    },
+    {
+      "template_id": "category_metric_horizontal_bar",
+      "version": 1,
+      "chart_type": "horizontal_bar",
+      "kind": "bar",
+      "prefix": "HBAR",
+      "candidate_id": "{dimension}_{measure}_horizontal_bar_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "HBAR_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "HBAR_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 20
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "y": "measure"
+      },
+      "ordering": "value_desc",
+      "description": {
+        "what": "Horizontal bars of {measure_words} for each {dimension_words}, largest first",
+        "best_for": "Comparing categories with long names",
+        "not_for": "Trends over time or shares of a whole"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "category_metric_lollipop",
+      "version": 1,
+      "chart_type": "lollipop",
+      "kind": "bar",
+      "prefix": "LOLLIPOP",
+      "candidate_id": "{dimension}_{measure}_lollipop_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "LOLLIPOP_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "LOLLIPOP_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 12
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "y": "measure"
+      },
+      "ordering": "value_desc",
+      "description": {
+        "what": "A dot per {dimension_words} showing {measure_words}, largest first",
+        "best_for": "Comparing a handful of categories with a light touch",
+        "not_for": "Many categories or shares of a whole"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "category_metric_pareto",
+      "version": 1,
+      "chart_type": "pareto",
+      "kind": "bar",
+      "prefix": "PARETO",
+      "candidate_id": "{dimension}_{measure}_pareto_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "PARETO_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "PARETO_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "MORE_CATEGORIES_THAN",
+          "min": 2,
+          "code": "PARETO_NEEDS_THREE_CATEGORIES"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 20
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "y": "measure"
+      },
+      "ordering": "value_desc",
+      "description": {
+        "what": "{measure_words} by {dimension_words}, largest first, with the running share of the total",
+        "best_for": "Finding the few categories that make up most of a total",
+        "not_for": "Scores, similarities or partial results"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "category_share_donut",
+      "version": 1,
+      "chart_type": "donut",
+      "kind": "pie",
+      "prefix": "DONUT",
+      "candidate_id": "{dimension}_{measure}_donut_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "DONUT_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "DONUT_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "PART_OF_WHOLE"
+        },
+        {
+          "name": "MUTUALLY_EXCLUSIVE"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 6
+        }
+      ],
+      "bindings": {
+        "category": "dimension",
+        "value": "measure"
+      },
+      "ordering": "value_desc",
+      "description": {
+        "what": "Share of total {measure_words} by {dimension_words}, as a ring",
+        "best_for": "Part-to-whole over a few complete, non-overlapping categories",
+        "not_for": "Scores, partial lists, precise comparison"
+      },
+      "disclosures": [
+        "EXACT_VALUES_IN_TABLE"
+      ]
+    },
+    {
+      "template_id": "category_share_waffle",
+      "version": 1,
+      "chart_type": "waffle",
+      "kind": "pie",
+      "prefix": "WAFFLE",
+      "candidate_id": "{dimension}_{measure}_waffle_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "WAFFLE_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "WAFFLE_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "PART_OF_WHOLE"
+        },
+        {
+          "name": "MUTUALLY_EXCLUSIVE"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 4
+        }
+      ],
+      "bindings": {
+        "category": "dimension",
+        "value": "measure"
+      },
+      "ordering": "value_desc",
+      "description": {
+        "what": "Share of total {measure_words} by {dimension_words}, one square per percent",
+        "best_for": "A simple share at a glance for a general audience",
+        "not_for": "Many categories or precise values"
+      },
+      "disclosures": [
+        "EXACT_VALUES_IN_TABLE"
+      ]
+    },
+    {
+      "template_id": "value_histogram",
+      "version": 1,
+      "chart_type": "histogram",
+      "kind": "table",
+      "prefix": "HISTOGRAM",
+      "candidate_id": "{measure}_histogram_v{version}",
+      "requires": [
+        {
+          "role": "identifier",
+          "missing": "HISTOGRAM_NEEDS_ONE_ROW_PER_ITEM"
+        },
+        {
+          "role": "measure",
+          "missing": "HISTOGRAM_NEEDS_A_MEASURE"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "RAW_OBSERVATIONS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 5,
+          "code": "{prefix}_NEEDS_5_VALUES"
+        }
+      ],
+      "bindings": {
+        "value": "measure"
+      },
+      "description": {
+        "what": "How many items fall in each range of {measure_words}",
+        "best_for": "Seeing how values are spread",
+        "not_for": "Totals per category"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "value_box_plot",
+      "version": 1,
+      "chart_type": "box_plot",
+      "kind": "table",
+      "prefix": "BOX_PLOT",
+      "candidate_id": "{measure}_box_plot_v{version}",
+      "requires": [
+        {
+          "role": "identifier",
+          "missing": "BOX_PLOT_NEEDS_ONE_ROW_PER_ITEM"
+        },
+        {
+          "role": "measure",
+          "missing": "BOX_PLOT_NEEDS_A_MEASURE"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "RAW_OBSERVATIONS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 5,
+          "code": "{prefix}_NEEDS_5_VALUES"
+        }
+      ],
+      "bindings": {
+        "value": "measure"
+      },
+      "description": {
+        "what": "Median, quartiles and extremes of {measure_words}",
+        "best_for": "Spotting the middle, the spread and outliers",
+        "not_for": "Totals per category or tiny samples"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "value_strip_plot",
+      "version": 1,
+      "chart_type": "strip_plot",
+      "kind": "table",
+      "prefix": "STRIP_PLOT",
+      "candidate_id": "{measure}_strip_plot_v{version}",
+      "requires": [
+        {
+          "role": "identifier",
+          "missing": "STRIP_PLOT_NEEDS_ONE_ROW_PER_ITEM"
+        },
+        {
+          "role": "measure",
+          "missing": "STRIP_PLOT_NEEDS_A_MEASURE"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "RAW_OBSERVATIONS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 5,
+          "code": "{prefix}_NEEDS_5_VALUES"
+        },
+        {
+          "name": "MAX_ROWS",
+          "max": 200
+        }
+      ],
+      "bindings": {
+        "value": "measure"
+      },
+      "description": {
+        "what": "Every item's {measure_words} as a point",
+        "best_for": "Small samples where each item matters",
+        "not_for": "Hundreds of items"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "value_beeswarm",
+      "version": 1,
+      "chart_type": "beeswarm",
+      "kind": "table",
+      "prefix": "BEESWARM",
+      "candidate_id": "{measure}_beeswarm_v{version}",
+      "requires": [
+        {
+          "role": "identifier",
+          "missing": "BEESWARM_NEEDS_ONE_ROW_PER_ITEM"
+        },
+        {
+          "role": "measure",
+          "missing": "BEESWARM_NEEDS_A_MEASURE"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "RAW_OBSERVATIONS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 5,
+          "code": "{prefix}_NEEDS_5_VALUES"
+        },
+        {
+          "name": "MAX_ROWS",
+          "max": 300
+        }
+      ],
+      "bindings": {
+        "value": "measure"
+      },
+      "description": {
+        "what": "Every item's {measure_words} as a point, spread out to stay visible",
+        "best_for": "Small samples with clusters",
+        "not_for": "Hundreds of items"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "value_ecdf",
+      "version": 1,
+      "chart_type": "ecdf",
+      "kind": "table",
+      "prefix": "ECDF",
+      "candidate_id": "{measure}_ecdf_v{version}",
+      "requires": [
+        {
+          "role": "identifier",
+          "missing": "ECDF_NEEDS_ONE_ROW_PER_ITEM"
+        },
+        {
+          "role": "measure",
+          "missing": "ECDF_NEEDS_A_MEASURE"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "RAW_OBSERVATIONS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 5,
+          "code": "{prefix}_NEEDS_5_VALUES"
+        }
+      ],
+      "bindings": {
+        "value": "measure"
+      },
+      "description": {
+        "what": "The share of items at or below each value of {measure_words}",
+        "best_for": "Reading thresholds, such as how many items score under 40",
+        "not_for": "A quick typical value"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "value_density",
+      "version": 1,
+      "chart_type": "density",
+      "kind": "table",
+      "prefix": "DENSITY",
+      "candidate_id": "{measure}_density_v{version}",
+      "requires": [
+        {
+          "role": "identifier",
+          "missing": "DENSITY_NEEDS_ONE_ROW_PER_ITEM"
+        },
+        {
+          "role": "measure",
+          "missing": "DENSITY_NEEDS_A_MEASURE"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "RAW_OBSERVATIONS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 20,
+          "code": "{prefix}_NEEDS_20_VALUES"
+        }
+      ],
+      "bindings": {
+        "value": "measure"
+      },
+      "description": {
+        "what": "A smoothed outline of how {measure_words} is spread",
+        "best_for": "The overall shape of a larger sample",
+        "not_for": "Small samples, where the curve looks surer than the data"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "ordered_category_bar",
+      "version": 1,
+      "chart_type": "bar",
+      "kind": "bar",
+      "prefix": "ORDERED_BAR",
+      "candidate_id": "{dimension}_{measure}_ordered_bar_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "ORDERED_BAR_NEEDS_CATEGORY_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "ORDERED_BAR_NEEDS_CATEGORY_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES"
+        },
+        {
+          "name": "ORDINAL_ORDER_DECLARED"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 20
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "y": "measure"
+      },
+      "ordering": "declared_order",
+      "description": {
+        "what": "Bar chart of {measure_words} for each {dimension_words}, in its declared order",
+        "best_for": "Counts across an ordered scale, such as low, medium, high",
+        "not_for": "Named categories with no natural order"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "time_metric_area",
+      "version": 1,
+      "chart_type": "area",
+      "kind": "table",
+      "prefix": "AREA",
+      "candidate_id": "{time}_{measure}_area_v{version}",
+      "requires": [
+        {
+          "role": "time",
+          "missing": "AREA_NO_TIME_DIMENSION"
+        },
+        {
+          "role": "series",
+          "optional": true
+        },
+        {
+          "role": "measure",
+          "missing": "AREA_NO_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ORDERED_TIME",
+          "grain": "cell"
+        },
+        {
+          "name": "COMPARABLE_RUNS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 2,
+          "distinct": "time",
+          "code": "{prefix}_NEEDS_TWO_RUNS"
+        },
+        {
+          "name": "MAX_SERIES",
+          "max": 12
+        }
+      ],
+      "bindings": {
+        "x": "time",
+        "y": "measure",
+        "series": "series"
+      },
+      "ordering": "time_asc",
+      "description": {
+        "what": "{measure_words} across dated, comparable runs ({time_words}), area filled",
+        "best_for": "Emphasising how large a value is over time",
+        "not_for": "Comparing unrelated categories"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "time_metric_step_line",
+      "version": 1,
+      "chart_type": "step_line",
+      "kind": "table",
+      "prefix": "STEP_LINE",
+      "candidate_id": "{time}_{measure}_step_line_v{version}",
+      "requires": [
+        {
+          "role": "time",
+          "missing": "STEP_LINE_NO_TIME_DIMENSION"
+        },
+        {
+          "role": "series",
+          "optional": true
+        },
+        {
+          "role": "measure",
+          "missing": "STEP_LINE_NO_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ORDERED_TIME",
+          "grain": "cell"
+        },
+        {
+          "name": "COMPARABLE_RUNS"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 2,
+          "distinct": "time",
+          "code": "{prefix}_NEEDS_TWO_RUNS"
+        },
+        {
+          "name": "MAX_SERIES",
+          "max": 12
+        }
+      ],
+      "bindings": {
+        "x": "time",
+        "y": "measure",
+        "series": "series"
+      },
+      "ordering": "time_asc",
+      "description": {
+        "what": "{measure_words} across dated, comparable runs ({time_words}), in steps",
+        "best_for": "Values that change only when a run happens",
+        "not_for": "Comparing unrelated categories"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "time_metric_sparkline",
+      "version": 1,
+      "chart_type": "sparkline",
+      "kind": "table",
+      "prefix": "SPARKLINE",
+      "candidate_id": "{time}_{measure}_sparkline_v{version}",
+      "requires": [
+        {
+          "role": "time",
+          "missing": "SPARKLINE_NO_TIME_DIMENSION"
+        },
+        {
+          "role": "measure",
+          "missing": "SPARKLINE_NO_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ORDERED_TIME",
+          "grain": "cell"
+        },
+        {
+          "name": "COMPARABLE_RUNS"
+        },
+        {
+          "name": "SINGLE_SERIES"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 2,
+          "distinct": "time",
+          "code": "{prefix}_NEEDS_TWO_RUNS"
+        }
+      ],
+      "bindings": {
+        "x": "time",
+        "y": "measure"
+      },
+      "ordering": "time_asc",
+      "description": {
+        "what": "A small trend of {measure_words} across runs, without axes",
+        "best_for": "A glance at direction",
+        "not_for": "Reading exact values"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "time_series_stacked_area",
+      "version": 1,
+      "chart_type": "stacked_area",
+      "kind": "table",
+      "prefix": "STACKED_AREA",
+      "candidate_id": "{time}_{measure}_stacked_area_v{version}",
+      "requires": [
+        {
+          "role": "time",
+          "missing": "STACKED_AREA_NO_TIME_DIMENSION"
+        },
+        {
+          "role": "series",
+          "missing": "STACKED_AREA_NEEDS_A_SERIES_FIELD"
+        },
+        {
+          "role": "measure",
+          "missing": "STACKED_AREA_NO_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ORDERED_TIME",
+          "grain": "cell"
+        },
+        {
+          "name": "COMPARABLE_RUNS"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "COMPLETE_GRID"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 2,
+          "distinct": "time",
+          "code": "{prefix}_NEEDS_TWO_RUNS"
+        },
+        {
+          "name": "MAX_SERIES",
+          "max": 12
+        }
+      ],
+      "bindings": {
+        "x": "time",
+        "y": "measure",
+        "series": "series"
+      },
+      "ordering": "time_asc",
+      "description": {
+        "what": "{measure_words} across comparable runs, stacked by {series_words}",
+        "best_for": "How the parts of a total change between runs",
+        "not_for": "Parts that overlap or can be negative"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "time_series_stacked_area_100",
+      "version": 1,
+      "chart_type": "stacked_area_100",
+      "kind": "table",
+      "prefix": "STACKED_AREA_100",
+      "candidate_id": "{time}_{measure}_stacked_area_100_v{version}",
+      "requires": [
+        {
+          "role": "time",
+          "missing": "STACKED_AREA_100_NO_TIME_DIMENSION"
+        },
+        {
+          "role": "series",
+          "missing": "STACKED_AREA_100_NEEDS_A_SERIES_FIELD"
+        },
+        {
+          "role": "measure",
+          "missing": "STACKED_AREA_100_NO_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ORDERED_TIME",
+          "grain": "cell"
+        },
+        {
+          "name": "COMPARABLE_RUNS"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "COMPLETE_GRID"
+        },
+        {
+          "name": "PART_OF_WHOLE"
+        },
+        {
+          "name": "MUTUALLY_EXCLUSIVE",
+          "grain": "cell"
+        },
+        {
+          "name": "MIN_ROWS",
+          "min": 2,
+          "distinct": "time",
+          "code": "{prefix}_NEEDS_TWO_RUNS"
+        },
+        {
+          "name": "MAX_SERIES",
+          "max": 12
+        }
+      ],
+      "bindings": {
+        "x": "time",
+        "y": "measure",
+        "series": "series"
+      },
+      "ordering": "time_asc",
+      "description": {
+        "what": "Share of {measure_words} by {series_words} across comparable runs (each run is 100%)",
+        "best_for": "How the mix changes between runs",
+        "not_for": "Comparing totals between runs"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "category_series_stacked_bar",
+      "version": 1,
+      "chart_type": "stacked_bar",
+      "kind": "table",
+      "prefix": "STACKED_BAR",
+      "candidate_id": "{dimension}_{series}_{measure}_stacked_bar_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "STACKED_BAR_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        },
+        {
+          "role": "series",
+          "missing": "STACKED_BAR_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "STACKED_BAR_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES",
+          "grain": "cell"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "COMPLETE_GRID"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 20
+        },
+        {
+          "name": "MAX_SERIES",
+          "max": 12
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "series": "series",
+        "y": "measure"
+      },
+      "ordering": "grid",
+      "description": {
+        "what": "{measure_words} for each {dimension_words}, split by {series_words}",
+        "best_for": "Comparing totals and their parts across categories",
+        "not_for": "Parts that overlap or can be negative"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "category_series_stacked_bar_100",
+      "version": 1,
+      "chart_type": "stacked_bar_100",
+      "kind": "table",
+      "prefix": "STACKED_BAR_100",
+      "candidate_id": "{dimension}_{series}_{measure}_stacked_bar_100_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "STACKED_BAR_100_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        },
+        {
+          "role": "series",
+          "missing": "STACKED_BAR_100_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "STACKED_BAR_100_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SINGLE_UNIT"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES",
+          "grain": "cell"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "COMPLETE_GRID"
+        },
+        {
+          "name": "PART_OF_WHOLE"
+        },
+        {
+          "name": "MUTUALLY_EXCLUSIVE",
+          "grain": "cell"
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 20
+        },
+        {
+          "name": "MAX_SERIES",
+          "max": 12
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "series": "series",
+        "y": "measure"
+      },
+      "ordering": "grid",
+      "description": {
+        "what": "Mix of {series_words} within each {dimension_words} (each bar is 100%)",
+        "best_for": "Comparing the mix across categories of different size",
+        "not_for": "Comparing totals"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "category_series_heatmap",
+      "version": 1,
+      "chart_type": "heatmap",
+      "kind": "table",
+      "prefix": "HEATMAP",
+      "candidate_id": "{dimension}_{series}_{measure}_heatmap_v{version}",
+      "requires": [
+        {
+          "role": "dimension",
+          "missing": "HEATMAP_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        },
+        {
+          "role": "series",
+          "missing": "HEATMAP_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        },
+        {
+          "role": "measure",
+          "missing": "HEATMAP_NEEDS_CATEGORY_SERIES_AND_METRIC"
+        }
+      ],
+      "guards": [
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "UNIQUE_CATEGORIES",
+          "grain": "cell"
+        },
+        {
+          "name": "MAX_ROWS",
+          "max": 500
+        },
+        {
+          "name": "MAX_CATEGORIES",
+          "max": 30
+        },
+        {
+          "name": "MAX_SERIES",
+          "max": 30
+        }
+      ],
+      "bindings": {
+        "x": "dimension",
+        "series": "series",
+        "y": "measure"
+      },
+      "ordering": "grid",
+      "description": {
+        "what": "{measure_words} for every {dimension_words} and {series_words}, as a coloured grid",
+        "best_for": "Spotting where counts concentrate across two categories",
+        "not_for": "Reading exact values; the table has them"
+      },
+      "disclosures": [
+        "EXACT_VALUES_IN_TABLE",
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "link_graph",
+      "version": 1,
+      "chart_type": "graph",
+      "kind": "table",
+      "prefix": "GRAPH",
+      "candidate_id": "{source}_{target}_graph_v{version}",
+      "requires": [
+        {
+          "role": "source",
+          "missing": "GRAPH_NEEDS_LINKS"
+        },
+        {
+          "role": "target",
+          "missing": "GRAPH_NEEDS_LINKS"
+        },
+        {
+          "role": "relation",
+          "missing": "GRAPH_NEEDS_A_DECLARED_RELATION"
+        },
+        {
+          "role": "measure",
+          "optional": true
+        }
+      ],
+      "guards": [
+        {
+          "name": "NO_SELF_LINKS"
+        },
+        {
+          "name": "UNIQUE_LINKS"
+        },
+        {
+          "name": "MAX_NODES",
+          "max": 100
+        },
+        {
+          "name": "MAX_LINKS",
+          "max": 300
+        }
+      ],
+      "bindings": {
+        "source": "source",
+        "target": "target",
+        "relation": "relation",
+        "value": "measure"
+      },
+      "ordering": "links",
+      "description": {
+        "what": "Network of {source_words} and {target_words}, each link labelled with what it means",
+        "best_for": "Seeing which assets are related, and how",
+        "not_for": "Reading amounts; the table has the exact values"
+      },
+      "disclosures": [
+        "EXACT_VALUES_IN_TABLE",
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "flow_sankey",
+      "version": 1,
+      "chart_type": "sankey",
+      "kind": "table",
+      "prefix": "SANKEY",
+      "candidate_id": "{source}_{target}_{measure}_sankey_v{version}",
+      "requires": [
+        {
+          "role": "source",
+          "missing": "SANKEY_NEEDS_LINKS"
+        },
+        {
+          "role": "target",
+          "missing": "SANKEY_NEEDS_LINKS"
+        },
+        {
+          "role": "relation",
+          "missing": "SANKEY_NEEDS_A_DECLARED_RELATION"
+        },
+        {
+          "role": "measure",
+          "missing": "SANKEY_NEEDS_A_QUANTITY"
+        }
+      ],
+      "guards": [
+        {
+          "name": "SIMILARITY_NOT_FLOW"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "NO_SELF_LINKS"
+        },
+        {
+          "name": "UNIQUE_LINKS"
+        },
+        {
+          "name": "ACYCLIC"
+        },
+        {
+          "name": "MAX_NODES",
+          "max": 100
+        },
+        {
+          "name": "MAX_LINKS",
+          "max": 300
+        }
+      ],
+      "bindings": {
+        "source": "source",
+        "target": "target",
+        "relation": "relation",
+        "value": "measure"
+      },
+      "ordering": "links",
+      "description": {
+        "what": "{measure_words} flowing from {source_words} to {target_words}, ribbons sized by amount",
+        "best_for": "Real quantities moving between stages",
+        "not_for": "Similarity or dependency, which do not flow"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "group_treemap",
+      "version": 1,
+      "chart_type": "treemap",
+      "kind": "table",
+      "prefix": "TREEMAP",
+      "candidate_id": "{source}_{target}_{measure}_treemap_v{version}",
+      "requires": [
+        {
+          "role": "source",
+          "missing": "TREEMAP_NEEDS_LINKS"
+        },
+        {
+          "role": "target",
+          "missing": "TREEMAP_NEEDS_LINKS"
+        },
+        {
+          "role": "relation",
+          "missing": "TREEMAP_NEEDS_A_DECLARED_RELATION"
+        },
+        {
+          "role": "measure",
+          "missing": "TREEMAP_NEEDS_A_QUANTITY"
+        }
+      ],
+      "guards": [
+        {
+          "name": "MEMBERSHIP_LINKS"
+        },
+        {
+          "name": "DISJOINT_GROUPS"
+        },
+        {
+          "name": "ACYCLIC"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "PART_OF_WHOLE"
+        },
+        {
+          "name": "MUTUALLY_EXCLUSIVE"
+        }
+      ],
+      "bindings": {
+        "source": "source",
+        "target": "target",
+        "relation": "relation",
+        "value": "measure"
+      },
+      "ordering": "groups",
+      "description": {
+        "what": "{measure_words} in each {target_words}, as nested rectangles",
+        "best_for": "Comparing the size of disjoint groups and their members",
+        "not_for": "Members in more than one group"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "group_sunburst",
+      "version": 1,
+      "chart_type": "sunburst",
+      "kind": "table",
+      "prefix": "SUNBURST",
+      "candidate_id": "{source}_{target}_{measure}_sunburst_v{version}",
+      "requires": [
+        {
+          "role": "source",
+          "missing": "SUNBURST_NEEDS_LINKS"
+        },
+        {
+          "role": "target",
+          "missing": "SUNBURST_NEEDS_LINKS"
+        },
+        {
+          "role": "relation",
+          "missing": "SUNBURST_NEEDS_A_DECLARED_RELATION"
+        },
+        {
+          "role": "measure",
+          "missing": "SUNBURST_NEEDS_A_QUANTITY"
+        }
+      ],
+      "guards": [
+        {
+          "name": "MEMBERSHIP_LINKS"
+        },
+        {
+          "name": "DISJOINT_GROUPS"
+        },
+        {
+          "name": "ACYCLIC"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "PART_OF_WHOLE"
+        },
+        {
+          "name": "MUTUALLY_EXCLUSIVE"
+        }
+      ],
+      "bindings": {
+        "source": "source",
+        "target": "target",
+        "relation": "relation",
+        "value": "measure"
+      },
+      "ordering": "groups",
+      "description": {
+        "what": "{measure_words} in each {target_words}, as nested rings",
+        "best_for": "The same question as a treemap, drawn radially",
+        "not_for": "Members in more than one group"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    },
+    {
+      "template_id": "group_tree",
+      "version": 1,
+      "chart_type": "tree",
+      "kind": "table",
+      "prefix": "TREE",
+      "candidate_id": "{source}_{target}_{measure}_tree_v{version}",
+      "requires": [
+        {
+          "role": "source",
+          "missing": "TREE_NEEDS_LINKS"
+        },
+        {
+          "role": "target",
+          "missing": "TREE_NEEDS_LINKS"
+        },
+        {
+          "role": "relation",
+          "missing": "TREE_NEEDS_A_DECLARED_RELATION"
+        },
+        {
+          "role": "measure",
+          "missing": "TREE_NEEDS_A_QUANTITY"
+        }
+      ],
+      "guards": [
+        {
+          "name": "MEMBERSHIP_LINKS"
+        },
+        {
+          "name": "DISJOINT_GROUPS"
+        },
+        {
+          "name": "ACYCLIC"
+        },
+        {
+          "name": "NO_NULL_MEASURE"
+        },
+        {
+          "name": "ADDITIVE_NONNEGATIVE"
+        },
+        {
+          "name": "SINGLE_ROOT"
+        }
+      ],
+      "bindings": {
+        "source": "source",
+        "target": "target",
+        "relation": "relation",
+        "value": "measure"
+      },
+      "ordering": "groups",
+      "description": {
+        "what": "The members of one {target_words}, as a tree",
+        "best_for": "Seeing what one group contains",
+        "not_for": "Several groups at once"
+      },
+      "disclosures": [
+        "@coverage",
+        "@measure_semantics"
+      ]
+    }
+  ]
+}

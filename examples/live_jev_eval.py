@@ -12,10 +12,10 @@ from pathlib import Path
 
 import httpx
 
-from chat_safety import Action, SafetyGate
-from chat_safety.adapters.jev import JevEvaluator, NoulQuestion
-from chat_safety.eval_cli import _load_cases, _load_policy, _report
-from chat_safety.models import Category
+from decissions import Action, SafetyGate
+from decissions.adapters.jev import JevEvaluator, NoulQuestion
+from decissions.eval_cli import _load_cases, _load_policy, _report
+from decissions.models import Category
 
 
 ROOT = Path(__file__).resolve().parent
